@@ -1,3 +1,4 @@
+import pprint
 import pdb
 
 # =========================================
@@ -11,6 +12,9 @@ class Node:
     self.parent = parent
     self.depth = depth
     self.is_root = is_root
+
+  def __str__(self):
+    return '<Node: #{val}. D: {d}>'.format(val=self.value, d=self.depth)
 
 
 class Deque:
@@ -38,12 +42,32 @@ def level_ancestor(k, u):
   y = u.depth - k
 
   while u.depth != y:
-    if u.depth >= y:
-      y = y.jump
+    if u.jump and u.jump.depth >= y:
+      u = u.jump
     else:
-      y = u.parent
+      u = u.parent
 
-  return y
+  return u
+
+
+def lowest_common_ancestor(u, v):
+  if u.depth > v.depth:
+    u, v = v, u
+
+  v = level_ancestor(v.depth - u.depth, v)
+
+  if u == v:
+    return u
+
+  while u.parent != v.parent:
+    if u.jump != v.jump:
+      u = u.jump
+      v = v.jump
+    else:
+      u = u.parent
+      v = v.parent
+
+  return u.parent
 
 
 # =========================================
@@ -143,30 +167,97 @@ def print_branch(d):
     v = v.parent
 
   print('front:', front(d), 'back:', back(d))
-  print('front->', head_items)
-  print('back->', tail_items)
+  if pretty:
+    pp = pprint.PrettyPrinter(indent=2)
+    print('front->')
+    pp.pprint(head_items)
+    print('back->')
+    pp.pprint(tail_items)
+  else:
+    print('front->', head_items)
+    print('back->', tail_items)
   print("\n")
 
 
-ds = [deque()]                   # 0
-ds.append(push_front(ds[0], 3))  # 1
-ds.append(push_front(ds[1], 4))  # 2
-ds.append(push_front(ds[2], 5))  # 3
-ds.append(push_back(ds[1], 6))   # 4
-ds.append(push_back(ds[4], 4))   # 5
-ds.append(push_front(ds[5], 9))  # 6
-ds.append(push_back(ds[6], 7))   # 7
+def test_0():
+  ds = [deque()]                   # 0
+  ds.append(push_front(ds[0], 3))  # 1
+  ds.append(push_front(ds[1], 4))  # 2
+  ds.append(push_front(ds[2], 5))  # 3
+  ds.append(push_back(ds[1], 6))   # 4
+  ds.append(push_back(ds[4], 4))   # 5
+  ds.append(push_front(ds[5], 9))  # 6
+  ds.append(push_back(ds[6], 10))   # 7
+  ds.append(push_back(ds[7], 11))   # 8
+  ds.append(push_back(ds[8], 12))   # 9
+  ds.append(push_back(ds[9], 13))   # 10
 
-for di in ds:
-  print_branch(di)
+  for di in ds:
+    print_branch(di)
 
-# d0 = deque()            # []
-# d1 = push_back(d0, 3)   # [3]
-# d2 = push_back(d1, 4)   # [3, 4]
-# d3 = push_front(d2, 2)  # [2, 3, 4]
-# d4 = push_front(d3, 1)  # [1, 2, 3, 4]
-# d5 = pop_back(d3)       # [2, 3]
-# d6 = pop_back(d5)       # [2]
-# d7 = push_front(d6, 9)  # [9, 2]
-# d8 = pop_front(d6)      # []
-# d9 = push_front(d8, 6)  # [6]
+def test_1():
+  d = deque()
+  for i in range(50):
+    if i % 2 == 0:
+      d = push_back(d, i)
+    else:
+      d = push_front(d, i)
+
+  print_branch(d, pretty=True)
+
+  u = find(d, 34)
+  v = find(d, 3)
+
+  print(u)
+  print(v)
+  print('\nlca')
+  print(lowest_common_ancestor(u, v))
+
+def test_2():
+  d0 = deque()            # []
+  d1 = push_back(d0, 3)   # [3]
+  d2 = push_back(d1, 4)   # [3, 4]
+  d3 = push_front(d2, 2)  # [2, 3, 4]
+  d4 = push_front(d3, 1)  # [1, 2, 3, 4]
+  # d5 = pop_back(d3)       # [2, 3]
+  # d6 = pop_back(d5)       # [2]
+  # d7 = push_front(d6, 9)  # [9, 2]
+  # d8 = pop_front(d6)      # []
+  # d9 = push_front(d8, 6)  # [6]
+
+  print_branch(d4)
+
+  u = find(d4, 1)
+  v = find(d4, 4)
+
+  print(u)
+  print(v)
+
+  print('\nlca')
+  print(lowest_common_ancestor(u, v))
+
+def test_3():
+  d0 = deque()            # []
+  d1 = push_back(d0, 3)   # [3]
+  d2 = push_back(d1, 4)   # [3, 4]
+  d3 = push_front(d2, 2)  # [2, 3, 4]
+  d4 = push_front(d3, 1)  # [1, 2, 3, 4]
+  d5 = push_back(d4, 5)   # [1, 2, 3, 4, 5]
+
+  d41 = push_front(d4, 6)
+  d42 = push_front(d41, 8)
+
+
+  print_branch(d4)
+
+  u = find(d4, 1)
+  v = find(d4, 4)
+
+  print(u)
+  print(v)
+
+  print('\nlca')
+  print(lowest_common_ancestor(u, v))
+
+test_2()
+# test_3()
