@@ -32,6 +32,8 @@ class Deque:
 def add_leaf(u):
   v = u.parent
 
+  # Since the jump of the root node is nullish, we also have to check
+  # if v.jump is a pointer to a valid node
   if v.jump and (not v.jump.is_root) and (v.depth - v.jump.depth == v.jump.depth - v.jump.jump.depth):
     u.jump = v.jump.jump
   else:
@@ -41,6 +43,8 @@ def add_leaf(u):
 def level_ancestor(k, u):
   y = u.depth - k
 
+  # Same as in add_leaf, we must check if u.jump is valid pointer
+  # before accesing it
   while u.depth != y:
     if u.jump and u.jump.depth >= y:
       u = u.jump
@@ -70,6 +74,23 @@ def lowest_common_ancestor(u, v):
   return u.parent
 
 
+def traverse(start, end):
+  """
+  Traverses a tree branch by using the pointer to parent node and
+  collects the node values along the way.
+  """
+  items = []
+  u = start
+
+  while True:
+    items.append(u.value)
+    if u == end:
+      break
+    u = u.parent
+
+  return items
+
+
 # =========================================
 # Interface functions
 # =========================================
@@ -90,6 +111,7 @@ def push_front(d, x):
   new_deque = Deque()
   new_node = Node(value=x, parent=d.front)
 
+  # We also update the deque's back pointer if it's empty
   if d.size == 0:
     new_deque.back = new_node
     new_node.depth = 1
@@ -100,7 +122,6 @@ def push_front(d, x):
   new_deque.size = d.size + 1
   new_deque.front = new_node
 
-  # Determines the jump pointer
   add_leaf(new_node)
 
   return new_deque
@@ -110,6 +131,7 @@ def push_back(d, x):
   new_deque = Deque()
   new_node = Node(value=x, parent=d.back)
 
+  # Again, we also update the deque's front pointer if it's empty
   if d.size == 0:
     new_deque.front = new_node
     new_node.depth = 1
@@ -120,7 +142,6 @@ def push_back(d, x):
   new_deque.size = d.size + 1
   new_deque.back = new_node
 
-  # Determines the jump pointer
   add_leaf(new_node)
 
   return new_deque
@@ -143,40 +164,42 @@ def kth(d, k):
 
 
 def print_deque(d):
-  # if lca(u, v) in [u, v]:
-  #   print each node until reaching parent
-  # else:
-  #   go up until the lca and then down
-  raise NotImplementedError
+  """
+  Uses the lowest common node to determine whether the deque is all within
+  a single tree branch or not.
+  """
+  lca = lowest_common_ancestor(d.front, d.back)
 
+  if lca == d.back:
+    # Simply traverses the branch upwards.
+    print(traverse(d.front, lca))
 
-def print_branch(d):
-  head_items = []
-  tail_items = []
-  u = d.front
-  v = d.back
+  elif lca == d.front:
+    # Traverses the tree upwards and then reverses the array. This is needed
+    # because the deque's front is at the top of the branch and we don't have
+    # pointers to child nodes, only to parents.
+    print(traverse(d.back, lca)[::-1])
 
-  add = lambda u: (u.value, u.depth)
-
-  while not u.is_root:
-    head_items.append(add(u))
-    u = u.parent
-
-  while not v.is_root:
-    tail_items.append(add(v))
-    v = v.parent
-
-  print('front:', front(d), 'back:', back(d))
-  if pretty:
-    pp = pprint.PrettyPrinter(indent=2)
-    print('front->')
-    pp.pprint(head_items)
-    print('back->')
-    pp.pprint(tail_items)
   else:
-    print('front->', head_items)
-    print('back->', tail_items)
-  print("\n")
+    # Combines both approaches from above. Additionaly, removes the last item
+    # from the first traverse, since it's also included in the downwards one.
+    print(traverse(d.front, lca)[:-1] + traverse(d.back, lca)[::-1])
+
+
+# =========================================
+# Dev tools :)
+# =========================================
+
+def find_node_from(u, value):
+  v = u
+  while not v.is_root:
+    if v.value == value:
+      return v
+    v = v.parent
+  return None
+
+def find(d, value):
+  return find_node_from(d.front, value) or find_node_from(d.back, value)
 
 
 def test_0():
