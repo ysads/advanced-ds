@@ -1,6 +1,8 @@
 import pprint
 import pdb
 
+# TODO: be careful with the `v.jump != None` style checks
+
 # =========================================
 # Data structures
 # =========================================
@@ -40,6 +42,17 @@ def add_leaf(u):
     u.jump = v
 
 
+def dup_deque(d):
+  new_deque = deque()
+
+  new_deque.root = d.root
+  new_deque.front = d.front
+  new_deque.back = d.back
+  new_deque.size = d.size
+
+  return new_deque
+
+
 def level_ancestor(k, u):
   y = u.depth - k
 
@@ -72,6 +85,16 @@ def lowest_common_ancestor(u, v):
       v = v.parent
 
   return u.parent
+
+
+def swap(d):
+  new_deque = deque()
+
+  new_deque.front = d.back
+  new_deque.back = d.front
+  new_deque.size = d.size
+
+  return new_deque
 
 
 def traverse(start, end):
@@ -148,15 +171,30 @@ def push_back(d, x):
 
 
 def pop_front(d):
-  # has to check the deque topology using lca
-  # /\  or  \ (lca(front, back)  or / (lca(front, back)
-  raise NotImplementedError
+  new_deque = dup_deque(d)
+
+  # Special case when deque becomes empty
+  if d.size == 1:
+    new_deque.front = d.root
+    new_deque.back = d.root
+    new_deque.size = 0
+    return new_deque
+
+  lca = lowest_common_ancestor(d.front, d.back)
+
+  if lca != d.front:
+    sec = d.front.parent
+  else:
+    sec = level_ancestor(d.back.depth - d.front.depth - 1, d.back)
+
+  new_deque.front = sec
+  new_deque.size = d.size - 1
+
+  return new_deque
 
 
 def pop_back(d):
-  # has to check the deque topology using lca
-  # /\  or  \ (lca(front, back) or / (lca(front, back)
-  raise NotImplementedError
+  return swap(pop_front(swap(d)))
 
 
 def kth(d, k):
@@ -168,119 +206,27 @@ def print_deque(d):
   Uses the lowest common node to determine whether the deque is all within
   a single tree branch or not.
   """
+  items = []
+  if d.size == 0:
+    print([])
+    return []
+
   lca = lowest_common_ancestor(d.front, d.back)
 
   if lca == d.back:
     # Simply traverses the branch upwards.
-    print(traverse(d.front, lca))
+    items = traverse(d.front, lca)
 
   elif lca == d.front:
     # Traverses the tree upwards and then reverses the array. This is needed
     # because the deque's front is at the top of the branch and we don't have
     # pointers to child nodes, only to parents.
-    print(traverse(d.back, lca)[::-1])
+    items = traverse(d.back, lca)[::-1]
 
   else:
     # Combines both approaches from above. Additionaly, removes the last item
     # from the first traverse, since it's also included in the downwards one.
-    print(traverse(d.front, lca)[:-1] + traverse(d.back, lca)[::-1])
+    items = traverse(d.front, lca)[:-1] + traverse(d.back, lca)[::-1]
 
-
-# =========================================
-# Dev tools :)
-# =========================================
-
-def find_node_from(u, value):
-  v = u
-  while not v.is_root:
-    if v.value == value:
-      return v
-    v = v.parent
-  return None
-
-def find(d, value):
-  return find_node_from(d.front, value) or find_node_from(d.back, value)
-
-
-def test_0():
-  ds = [deque()]                   # 0
-  ds.append(push_front(ds[0], 3))  # 1
-  ds.append(push_front(ds[1], 4))  # 2
-  ds.append(push_front(ds[2], 5))  # 3
-  ds.append(push_back(ds[1], 6))   # 4
-  ds.append(push_back(ds[4], 4))   # 5
-  ds.append(push_front(ds[5], 9))  # 6
-  ds.append(push_back(ds[6], 10))   # 7
-  ds.append(push_back(ds[7], 11))   # 8
-  ds.append(push_back(ds[8], 12))   # 9
-  ds.append(push_back(ds[9], 13))   # 10
-
-  for di in ds:
-    print_branch(di)
-
-def test_1():
-  d = deque()
-  for i in range(50):
-    if i % 2 == 0:
-      d = push_back(d, i)
-    else:
-      d = push_front(d, i)
-
-  print_branch(d, pretty=True)
-
-  u = find(d, 34)
-  v = find(d, 3)
-
-  print(u)
-  print(v)
-  print('\nlca')
-  print(lowest_common_ancestor(u, v))
-
-def test_2():
-  d0 = deque()            # []
-  d1 = push_back(d0, 3)   # [3]
-  d2 = push_back(d1, 4)   # [3, 4]
-  d3 = push_front(d2, 2)  # [2, 3, 4]
-  d4 = push_front(d3, 1)  # [1, 2, 3, 4]
-  # d5 = pop_back(d3)       # [2, 3]
-  # d6 = pop_back(d5)       # [2]
-  # d7 = push_front(d6, 9)  # [9, 2]
-  # d8 = pop_front(d6)      # []
-  # d9 = push_front(d8, 6)  # [6]
-
-  print_branch(d4)
-
-  u = find(d4, 1)
-  v = find(d4, 4)
-
-  print(u)
-  print(v)
-
-  print('\nlca')
-  print(lowest_common_ancestor(u, v))
-
-def test_3():
-  d0 = deque()            # []
-  d1 = push_back(d0, 3)   # [3]
-  d2 = push_back(d1, 4)   # [3, 4]
-  d3 = push_front(d2, 2)  # [2, 3, 4]
-  d4 = push_front(d3, 1)  # [1, 2, 3, 4]
-  d5 = push_back(d4, 5)   # [1, 2, 3, 4, 5]
-
-  d41 = push_front(d4, 6)
-  d42 = push_front(d41, 8)
-
-
-  print_branch(d4)
-
-  u = find(d4, 1)
-  v = find(d4, 4)
-
-  print(u)
-  print(v)
-
-  print('\nlca')
-  print(lowest_common_ancestor(u, v))
-
-test_2()
-# test_3()
+  print(items)
+  return items
