@@ -1,7 +1,7 @@
-import pprint
-import pdb
-
-# TODO: be careful with the `v.jump != None` style checks
+"""
+Nome: Ygor Sad Machado
+NUSP: 8910368
+"""
 
 # =========================================
 # Data structures
@@ -43,6 +43,10 @@ def add_leaf(u):
 
 
 def dup_deque(d):
+  """
+  Duplicate an existing deque by creating a new Deque object with
+  same pointers as the original. This doesn't create any new Nodes!
+  """
   new_deque = deque()
 
   new_deque.root = d.root
@@ -88,11 +92,10 @@ def lowest_common_ancestor(u, v):
 
 
 def swap(d):
-  new_deque = deque()
+  new_deque = dup_deque(d)
 
   new_deque.front = d.back
   new_deque.back = d.front
-  new_deque.size = d.size
 
   return new_deque
 
@@ -166,6 +169,7 @@ def pop_front(d):
 
   lca = lowest_common_ancestor(d.front, d.back)
 
+  # Finds the second node, ie, the one that will be the new front
   if lca != d.front:
     sec = d.front.parent
   else:
