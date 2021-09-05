@@ -151,23 +151,7 @@ def push_front(d, x):
 
 
 def push_back(d, x):
-  new_deque = Deque()
-  new_node = Node(value=x, parent=d.back)
-
-  # Again, we also update the deque's front pointer if it's empty
-  if d.size == 0:
-    new_deque.front = new_node
-    new_node.depth = 1
-  else:
-    new_deque.front = d.front
-    new_node.depth = d.back.depth + 1
-
-  new_deque.size = d.size + 1
-  new_deque.back = new_node
-
-  add_leaf(new_node)
-
-  return new_deque
+  return swap(push_front(swap(d), x))
 
 
 def pop_front(d):
