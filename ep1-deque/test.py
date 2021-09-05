@@ -7,6 +7,9 @@ class TestDeque(unittest.TestCase):
 
 
   def assert_topology(self, d, topo):
+      if (d.size == 1):
+        return self.assert_equal(topo, 'node')
+
       lca = lowest_common_ancestor(d.front, d.back)
   
       if lca == d.front:
@@ -19,7 +22,7 @@ class TestDeque(unittest.TestCase):
 
   def test_t1(self):
     """
-    Test operations on empty deques.
+    Test operations on empty and nearly-empty deques.
     """
     d0 = deque()
     d1 = push_back(d0, 3)
@@ -57,12 +60,18 @@ class TestDeque(unittest.TestCase):
     self.assert_equal(back(d6), 13)
     self.assert_topology(d6, 'v-shape')
 
+    self.assert_equal(kth(d6, 1), 9)
+    self.assert_equal(kth(d6, 3), 10)
+
     d7 = pop_front(d6)      # [3, 10, 11, 12, 13]
 
     self.assert_equal(print_deque(d7), [3, 10, 11, 12, 13])
     self.assert_equal(front(d7), 3)
     self.assert_equal(back(d7), 13)
     self.assert_topology(d7, 'lean-right')
+
+    self.assert_equal(kth(d7, 1), 3)
+    self.assert_equal(kth(d7, 4), 12)
 
     d8 = pop_front(d7)      # [10, 11, 12, 13]
 
@@ -113,7 +122,8 @@ class TestDeque(unittest.TestCase):
   def test_t4(self):
     """
     Complex deque with several arborescences. Test if access to previous
-    states of the deque remain as expected.
+    states of the deque remain as expected as well as if kth traverses
+    the correct trees.
     """
     d0 = deque()            # []
     d1 = push_back(d0, 3)   # [3]
@@ -131,6 +141,13 @@ class TestDeque(unittest.TestCase):
     self.assert_equal(print_deque(d7), [9, 2])
     self.assert_equal(print_deque(d8), [])
     self.assert_equal(print_deque(d9), [6])
+
+    self.assert_equal(kth(d2, 2), 4)
+    self.assert_equal(kth(d3, 1), 2)
+    self.assert_equal(kth(d4, 3), 3)
+    self.assert_equal(kth(d4, 4), 4)
+    self.assert_equal(kth(d7, 1), 9)
+    self.assert_equal(kth(d9, 1), 6)
 
 
 unittest.main()

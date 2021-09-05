@@ -182,7 +182,21 @@ def pop_back(d):
 
 
 def kth(d, k):
-  raise NotImplementedError
+  """
+  Uses lower common node to check if the kth element is within a single branch
+  or not. Then uses level_ancestor to get to it.
+  Note that k must be in [1, d.size].
+  """
+  lca = lowest_common_ancestor(d.front, d.back)
+  l1 = d.front.depth - lca.depth
+  l2 = d.back.depth - lca.depth
+
+  # We subtract here because k indices start at 1, whereas level_ancestor
+  # offsets use 0-based indices. Eg: k=1 -> 0-th ancestor
+  if k - 1 <= l1:
+    return level_ancestor(k - 1, d.front).value
+  else:
+    return level_ancestor(l2 - (k - 1 - l1), d.back).value
 
 
 def print_deque(d):
