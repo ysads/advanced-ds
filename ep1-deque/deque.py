@@ -1,6 +1,8 @@
 """
 Nome: Ygor Sad Machado
 NUSP: 8910368
+
+WARNING: This program requires python 3.x!
 """
 
 # =========================================
