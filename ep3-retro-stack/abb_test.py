@@ -43,3 +43,6 @@ print_bst(t)
 
 t = bst_remove(t, 5)
 print_bst(t)
+
+t = bst_remove(t, 9)
+print_bst(t)

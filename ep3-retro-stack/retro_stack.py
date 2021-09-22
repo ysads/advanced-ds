@@ -49,21 +49,20 @@ def bst_add_node(r, x):
   Takes a single node and returns a new subtree in which the old node and
   the new node are siblings of an inner node.
   """
-  if r.is_leaf():
-    old_node = r
-    new_node = Node(val=x, max_left=x)
-    inner_node = Node(height=1, leaves=2)
+  old_node = r
+  new_node = Node(val=x, max_left=x)
+  inner_node = Node(height=1, leaves=2)
 
-    if new_node.val < old_node.val:
-      inner_node.left = new_node
-      inner_node.right = old_node
-    else:
-      inner_node.left = old_node
-      inner_node.right = new_node
+  if new_node.val < old_node.val:
+    inner_node.left = new_node
+    inner_node.right = old_node
+  else:
+    inner_node.left = old_node
+    inner_node.right = new_node
 
-    inner_node.max_left = inner_node.left.val
+  inner_node.max_left = inner_node.left.val
 
-    return inner_node
+  return inner_node
 
 
 def bst_search(r, x):
@@ -119,16 +118,16 @@ def bst_remove_node(r, x):
 
   r.leaves -= 1
 
-  # We don't need to have inner nodes with less that 2 leaves.
-  if r.leaves == 0:
-    return None
-  elif r.leaves == 1:
+  # If one of the inner node's children is missing, we can remove it.
+  if r.left is None or r.right is None:
     return r.left or r.right
 
   # The only way to change this field is if we remove the node that
   # was previously here. Otherwise, it stays the same.
   if r.max_left == x:
     r.max_left = r.left.max_left
+
+  r.height = max(r.left.height, r.right.height) + 1
 
   return r
 
