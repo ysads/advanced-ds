@@ -10,7 +10,7 @@ WARNING: This program requires python 3.x!
 # =========================================
 
 class Node:
-  def __init__(self, left=None, right=None, leaves=0, height=0, max_left=0, val=None):
+  def __init__(self, left=None, right=None, leaves=1, height=0, max_left=0, val=None):
     self.left = left
     self.right = right
     self.leaves = leaves
@@ -141,6 +141,41 @@ def bst_remove(r, x):
     return r
 
   return bst_remove_node(r, x)
+
+
+def bst_count(r, x):
+  """
+  Returns the number of elements t in the bst such that t < x.
+  """
+  if r is None:
+    return 0
+
+  count = 0
+  while not r.is_leaf():
+    if x <= r.max_left:
+      r = r.left
+    else:
+      count += r.left.leaves
+      r = r.right
+
+  return count
+
+
+def bst_kth(r, k):
+  """
+  Returns the k-th smallest element in the bst.
+  """
+  if r is None or k > r.leaves:
+    return -1
+
+  while not r.is_leaf():
+    if k <= r.left.leaves:
+      r = r.left
+    else:
+      k -= r.left.leaves
+      r = r.right
+
+  return r.val
 
 
 def print_in_levels(r, level):
