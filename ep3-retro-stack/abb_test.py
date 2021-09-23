@@ -1,78 +1,78 @@
-from retro_stack import *
+from avl import *
 
-t = bst()
-print_bst(t)
+t = avl()
+avl_print(t)
 
-t = bst_insert(t, 9)
-print_bst(t)
+t = avl_insert(t, 9)
+avl_print(t)
 
-t = bst_insert(t, 40)
-print_bst(t)
+t = avl_insert(t, 40)
+avl_print(t)
 
-t = bst_insert(t, 20)
-print_bst(t)
+t = avl_insert(t, 20)
+avl_print(t)
 
-t = bst_insert(t, 16)
-print_bst(t)
+t = avl_insert(t, 16)
+avl_print(t)
 
-t = bst_insert(t, 32)
-print_bst(t)
+t = avl_insert(t, 32)
+avl_print(t)
 
-t = bst_insert(t, 14)
-print_bst(t)
+t = avl_insert(t, 14)
+avl_print(t)
 
-t = bst_insert(t, 5)
-print_bst(t)
+t = avl_insert(t, 5)
+avl_print(t)
 
-t = bst_insert(t, 4)
-print_bst(t)
+t = avl_insert(t, 4)
+avl_print(t)
 
-t = bst_insert(t, 3)
-print_bst(t)
+t = avl_insert(t, 3)
+avl_print(t)
 
-t = bst_insert(t, 2)
-print_bst(t)
+t = avl_insert(t, 2)
+avl_print(t)
 
-t = bst_insert(t, 1)
-print_bst(t)
+t = avl_insert(t, 1)
+avl_print(t)
 
-t = bst_insert(t, 6)
-print_bst(t)
-
-print("-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-")
-print("-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-")
-
-print(bst_count(t, 1))   # 0
-print(bst_count(t, 14))  # 7
-print(bst_count(t, 32))  # 10
+t = avl_insert(t, 6)
+avl_print(t)
 
 print("-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-")
 print("-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-")
 
-print(bst_kth(t, 1))    # 1
-print(bst_kth(t, 7))    # 9
-print(bst_kth(t, 9))    # 16
-print(bst_kth(t, 11))   # 32
+print(avl_count(t, 1))   # 0
+print(avl_count(t, 14))  # 7
+print(avl_count(t, 32))  # 10
 
 print("-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-")
 print("-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-")
 
-print_bst(t)
+print(avl_kth(t, 1))    # 1
+print(avl_kth(t, 7))    # 9
+print(avl_kth(t, 9))    # 16
+print(avl_kth(t, 11))   # 32
 
-t = bst_remove(t, 16)
-print_bst(t)
+print("-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-")
+print("-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-")
 
-t = bst_remove(t, 16)
-print_bst(t)
+avl_print(t)
 
-t = bst_remove(t, 14)
-print_bst(t)
+t = avl_remove(t, 16)
+avl_print(t)
 
-t = bst_remove(t, 20)
-print_bst(t)
+t = avl_remove(t, 16)
+avl_print(t)
 
-t = bst_remove(t, 5)
-print_bst(t)
+t = avl_remove(t, 14)
+avl_print(t)
 
-t = bst_remove(t, 9)
-print_bst(t)
+t = avl_remove(t, 20)
+avl_print(t)
+
+t = avl_remove(t, 5)
+avl_print(t)
+
+t = avl_remove(t, 9)
+avl_print(t)
