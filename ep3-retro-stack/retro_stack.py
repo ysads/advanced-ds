@@ -28,7 +28,7 @@ class Node:
       return '[{max_left},{leaves}] <{height}>'.format(
         max_left=self.max_left,
         leaves=self.leaves,
-        height=bst_height(self)
+        height=height(self)
       )
 
 
@@ -40,8 +40,57 @@ def bst():
   return None
 
 
-def bst_height(r):
-  return 0 if r is None else r.height
+def height(r):
+  return -1 if r is None else r.height
+
+
+def balance_factor(r):
+  """
+  To be an AVL, a tree must have each of its nodes with a balance
+  factor equals to -1, 0 or 1.
+  """
+  return height(r.left) - height(r.right)
+
+
+def rotate_right(u):
+  v = u.left
+  u.left = v.right
+  v.right = u
+
+  u.leaves = u.left.leaves + u.right.leaves
+  v.leaves = v.left.leaves + v.right.leaves
+
+  u.height = 1 + max(height(u.left), height(u.right))
+  v.height = 1 + max(height(v.left), height(v.right))
+
+  return v
+
+
+def rotate_left(u):
+    v = u.right
+    u.right = v.left
+    v.left = u
+
+    u.leaves = u.left.leaves + u.right.leaves
+    v.leaves = v.left.leaves + v.right.leaves
+
+    u.height = 1 + max(height(u.left), height(u.right))
+    v.height = 1 + max(height(v.left), height(v.right))
+
+    return v
+
+
+def balance(r):
+  if balance_factor(r) < -1:
+    if balance_factor(r.right) > 0:
+      r.right = rotate_right(r.right)
+    r = rotate_left(r)
+  elif (balance_factor(r) > 1):
+    if balance_factor(r.left) < 0:
+      r.left = rotate_left(r.left)
+    r = rotate_right(r)
+
+  return r
 
 
 def bst_add_node(r, x):
@@ -100,7 +149,7 @@ def bst_insert(r, x):
   r.height = max(r.left.height, r.right.height) + 1
   r.max_left = max(r.max_left, r.left.max_left)
 
-  return r
+  return balance(r)
 
 
 def bst_remove_node(r, x):
@@ -129,7 +178,7 @@ def bst_remove_node(r, x):
 
   r.height = max(r.left.height, r.right.height) + 1
 
-  return r
+  return balance(r)
 
 
 def bst_remove(r, x):
