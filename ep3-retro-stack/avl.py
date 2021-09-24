@@ -6,31 +6,62 @@ WARNING: This program requires python 3.x!
 """
 
 class Node:
-  def __init__(self, left=None, right=None, leaves=1, height=0, max_left=0, val=None):
+  def __init__(self, left=None, right=None, key=None, val=None, leaves=1, height=0, weight=0, max_left=0, sum=0, smax=0):
     self.left = left
     self.right = right
     self.leaves = leaves
     self.height = height
+    self.weight = weight
     self.max_left = max_left
+    self.sum = sum
+    self.smax = smax
+    self.key = key
     self.val = val
 
+
   def is_leaf(self):
-    return self.val is not None
+    return self.key is not None
+
+
+  def is_push(self):
+    return self.weight == 1
+
 
   def __str__(self):
     if self.is_leaf():
-      return ' {val}   '.format(val=self.val)
+      return ' {sum:2d},{smax:2d} ({key}) {op}'.format(
+        key=self.key,
+        val=self.val,
+        sum=self.sum,
+        smax=self.smax,
+        op="+" if self.is_push() else "-"
+      )
     else:
-      return '[{max_left},{leaves}] <{height}>'.format(
-        max_left=self.max_left,
-        leaves=self.leaves,
-        height=height(self)
+      return '[{sum},{smax}] ({max_left})'.format(
+        sum=self.sum,
+        smax=self.smax,
+        max_left=self.max_left
       )
 
 
 # =========================================
 # Utilitary functions
 # =========================================
+
+def create_leaf_node(key, val, weight):
+  return Node(
+    key=key,
+    val=val,
+    weight=weight,
+    max_left=key,
+    sum=weight,
+    smax=min(0, weight)
+  )
+
+
+def inner_node_smax(r):
+  return min(r.left.smax, r.left.sum + r.right.smax)
+
 
 def print_in_levels(r, level):
   """
@@ -46,6 +77,10 @@ def print_in_levels(r, level):
 
 def height(r):
   return -1 if r is None else r.height
+
+
+def smax(weight):
+  return min(0, weight)
 
 
 def balance_factor(r):
@@ -67,21 +102,33 @@ def rotate_right(u):
   u.height = 1 + max(height(u.left), height(u.right))
   v.height = 1 + max(height(v.left), height(v.right))
 
+  u.sum = u.left.sum + u.right.sum
+  v.sum = v.left.sum + v.right.sum
+
+  u.smax = inner_node_smax(u)
+  v.smax = inner_node_smax(v)
+
   return v
 
 
 def rotate_left(u):
-    v = u.right
-    u.right = v.left
-    v.left = u
+  v = u.right
+  u.right = v.left
+  v.left = u
 
-    u.leaves = u.left.leaves + u.right.leaves
-    v.leaves = v.left.leaves + v.right.leaves
+  u.leaves = u.left.leaves + u.right.leaves
+  v.leaves = v.left.leaves + v.right.leaves
 
-    u.height = 1 + max(height(u.left), height(u.right))
-    v.height = 1 + max(height(v.left), height(v.right))
+  u.height = 1 + max(height(u.left), height(u.right))
+  v.height = 1 + max(height(v.left), height(v.right))
 
-    return v
+  u.sum = u.left.sum + u.right.sum
+  v.sum = v.left.sum + v.right.sum
+
+  u.smax = inner_node_smax(u)
+  v.smax = inner_node_smax(v)
+
+  return v
 
 
 def balance(r):
@@ -97,39 +144,41 @@ def balance(r):
   return r
 
 
-def add_node(r, x):
+def add_node(r, key, val, weight):
   """
   Takes a single node and returns a new subtree in which the old node and
   the new node are siblings of an inner node.
   """
   old_node = r
-  new_node = Node(val=x, max_left=x)
+  new_node = create_leaf_node(key, val, weight)
   inner_node = Node(height=1, leaves=2)
 
-  if new_node.val < old_node.val:
+  if new_node.key < old_node.key:
     inner_node.left = new_node
     inner_node.right = old_node
   else:
     inner_node.left = old_node
     inner_node.right = new_node
 
-  inner_node.max_left = inner_node.left.val
+  inner_node.max_left = inner_node.left.key
+  inner_node.sum = new_node.weight + old_node.weight
+  inner_node.smax = inner_node_smax(inner_node)
 
   return inner_node
 
 
-def remove_node(r, x):
+def remove_node(r, key, weight):
   """
   Assumes a node exists and removes it from the tree. This function may only
   be called when *you're sure* the node exists, since it always decreases counters.
   """
-  if r.val == x:
+  if r.key == key:
     return None
 
-  if x <= r.max_left:
-    r.left = remove_node(r.left, x)
+  if key <= r.max_left:
+    r.left = remove_node(r.left, key, weight)
   else:
-    r.right = remove_node(r.right, x)
+    r.right = remove_node(r.right, key, weight)
 
   r.leaves -= 1
 
@@ -139,10 +188,12 @@ def remove_node(r, x):
 
   # The only way to change this field is if we remove the node that
   # was previously here. Otherwise, it stays the same.
-  if r.max_left == x:
+  if r.max_left == key:
     r.max_left = r.left.max_left
 
   r.height = max(r.left.height, r.right.height) + 1
+  r.sum = r.left.sum + r.right.sum
+  r.smax = inner_node_smax(r)
 
   return balance(r)
 
@@ -155,34 +206,34 @@ def avl():
   return None
 
 
-def avl_search(r, x):
+def avl_search(r, key):
   if r is None:
     return False
 
-  if r.val == x:
+  if r.key == key:
     return True
-  elif x <= r.max_left:
-    return avl_search(r.left, x)
+  elif key <= r.max_left:
+    return avl_search(r.left, key)
   else:
-    return avl_search(r.right, x)
+    return avl_search(r.right, key)
 
 
-def avl_insert(r, x):
+def avl_insert(r, key, val, weight):
   """
   Insert a new value at the BST. Values are always added to leaves, which
   are referenced by inner nodes. For the sake of simplicity, the max_left
   field on leaf is the leaf's value itself.
   """
   if r is None:
-    return Node(val=x, max_left=x)
+    return create_leaf_node(key, val, weight)
 
   if r.is_leaf():
-    return add_node(r, x)
+    return add_node(r, key, val, weight)
 
-  if x <= r.max_left:
-    r.left = avl_insert(r.left, x)
+  if key <= r.max_left:
+    r.left = avl_insert(r.left, key, val, weight)
   else:
-    r.right = avl_insert(r.right, x)
+    r.right = avl_insert(r.right, key, val, weight)
 
   # Updates the counters of the inner node considering the changes made
   # deep down in the subtree.
@@ -190,18 +241,42 @@ def avl_insert(r, x):
   r.height = max(r.left.height, r.right.height) + 1
   r.max_left = max(r.max_left, r.left.max_left)
 
+  r.sum = r.left.sum + r.right.sum
+  r.smax = inner_node_smax(r)
+
   return balance(r)
 
 
-def avl_remove(r, x):
+def avl_remove(r, key, weight):
   """
   Wrapper function used to ensure a given node exists in the tree before
   trying to remove it.
   """
-  if not avl_search(r, x):
+  if not avl_search(r, key):
     return r
 
-  return remove_node(r, x)
+  return remove_node(r, key, weight)
+
+
+def avl_sum(r, key):
+  """
+  Returns the sum of the weights of all nodes smaller than a given key.
+  """
+  if r is None:
+    return 0
+
+  sum = 0
+  while not r.is_leaf():
+    if key <= r.max_left:
+      r = r.left
+    else:
+      sum += r.left.sum
+      r = r.right
+
+  if r.key == key:
+    sum += r.weight
+
+  return sum
 
 
 def avl_count(r, x):
@@ -248,3 +323,6 @@ def avl_print(r):
     print_in_levels(r, level=0)
 
   print('\n')
+
+
+# min(left.smax, left.sum + right.smax)
