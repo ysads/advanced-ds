@@ -1,0 +1,36 @@
+Bst()
+Insert(0, 10)
+Insert(1, 7)
+Insert(2, 5)
+Insert(3, 12)
+Insert(4, 11)
+Insert(5, 13)
+Insert(6, 16)
+Insert(7, 14)
+Insert(8, 18)
+
+Print(9)        # [5, 7, 10, 11, 12, 13, 14, 16, 18]
+
+Delete(9, 13)
+Print(10)       # [5, 7, 10, 11, 12, 14, 16, 18]
+
+Delete(10, 12)
+Print(11)       # [5, 7, 10, 11, 14, 16, 18]
+
+Delete(11, 11)
+Print(12)       # [5, 7, 10, 12, 14, 16, 18]
+
+Delete(12, 7)
+Print(13)       # [5, 10, 12, 14, 16, 18]
+
+Insert(13, 2)
+Print(14)       # [5, 2, 10, 12, 14, 16, 18]
+
+Min(14)         # 2
+Min(13)         # 5
+
+Search(9, 5)    # True
+Search(9, 4)    # False
+Search(13, 7)   # False
+Search(14, 7)   # False
+Search(14, 2)   # True
