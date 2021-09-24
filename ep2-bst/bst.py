@@ -109,11 +109,10 @@ def min(r):
   if r is None:
     return r
 
-  u = r.left
-  while u.left is not None:
-    u = u.left
+  while r.left is not None:
+    r = r.left
 
-  return u.value
+  return r.value
 
 
 def print_bst(r):
