@@ -299,31 +299,40 @@ def avl_sum(r, time):
 
 
 def avl_kth(r, time, k):
+  """
+  Returns a tuple (k, v), where k is the number of pops to undo in order
+  to find the proper top, and v is the value of top.
+  """
+  if r is None:
+    exit('Should that even happen? ಥ_ಥ')
+
   if r.is_leaf():
     if r.is_push():
       if r.time <= time:
-        return [r.val]
+        return r.val, 0
       else:
-        return [None, 1]
+        return None, 1
     else:
       if r.time <= time:
-        return [None, 2]
+        return None, 2
       else:
-        return [None, 1]
-  elif time < r.min_right:
-    return avl_kth(r.left, time, k)
+        return None, 1
   else:
-    kth_right = avl_kth(r.right, time, k)
-    
-    if kth_right[0] is None:
-      k -= kth_right[1]
-
-      if r.left.smax > k:
-        return [get_value(r.left, k)]
-      else:
-        return [None, kth_right[1] + r.left.sum]
+    if time < r.min_right:
+      return avl_kth(r.left, time)
     else:
-      return kth_right
+      v, k = avl_kth(r.right, time)
+
+  # We have found the proper push so no need to keep searching
+  if v is not None:
+    return v, k
+
+  k = k - r.sum
+
+  if r.smax >= k:
+    return get_value(r.left, k), 0
+  else:
+    return None, k + r.left.weight
 
 
 def avl_print(r):
