@@ -4,43 +4,50 @@ NUSP: 8910368
 
 WARNING: This program requires python 3.x!
 """
+import pdb
 
 class Node:
-  def __init__(self, left=None, right=None, key=None, val=None, leaves=1, height=0, weight=0, max_left=0, sum=0, smax=0):
+  def __init__(self, left=None, right=None, time=None, val=None, leaves=1, height=0, weight=0, max_left=0, min_right=0, sum=0, smax=0):
     self.left = left
     self.right = right
     self.leaves = leaves
     self.height = height
     self.weight = weight
     self.max_left = max_left
+    self.min_right = min_right
     self.sum = sum
     self.smax = smax
-    self.key = key
+    self.time = time
     self.val = val
 
 
   def is_leaf(self):
-    return self.key is not None
+    return self.time is not None
 
 
   def is_push(self):
     return self.weight == 1
 
 
+  def is_pop(self):
+    return self.weight == -1
+
+
   def __str__(self):
     if self.is_leaf():
-      return ' {sum:2d},{smax:2d} ({key}) {op}'.format(
-        key=self.key,
+      return ' [{sum:2d},{smax:2d}] ({time}) {op} {val}'.format(
+        time=self.time,
         val=self.val,
         sum=self.sum,
         smax=self.smax,
         op="+" if self.is_push() else "-"
       )
     else:
-      return '[{sum},{smax}] ({max_left})'.format(
+      return '[{sum},{smax}] ({min_right})'.format(
         sum=self.sum,
         smax=self.smax,
-        max_left=self.max_left
+        max_left=self.max_left,
+        min_right=self.min_right,
       )
 
 
@@ -48,12 +55,13 @@ class Node:
 # Utilitary functions
 # =========================================
 
-def create_leaf_node(key, val, weight):
+def create_leaf_node(time, val, weight):
   return Node(
-    key=key,
+    time=time,
     val=val,
     weight=weight,
-    max_left=key,
+    max_left=time,
+    min_right=time,
     sum=weight,
     smax=min(0, weight)
   )
@@ -65,7 +73,7 @@ def inner_node_smax(r):
 
 def print_in_levels(r, level):
   """
-  Recursively print the BST in a tree-like structure but rotated
+  Recursively print the AVL in a tree-like structure but rotated
   90º counterclockwise – ie, given a node, its left children are
   printed to the bottom, while its right children are on top of it.
   """
@@ -79,10 +87,6 @@ def height(r):
   return -1 if r is None else r.height
 
 
-def smax(weight):
-  return min(0, weight)
-
-
 def balance_factor(r):
   """
   To be an AVL, a tree must have each of its nodes with a balance
@@ -92,6 +96,7 @@ def balance_factor(r):
 
 
 def rotate_right(u):
+  print("rotate ->")
   v = u.left
   u.left = v.right
   v.right = u
@@ -144,58 +149,71 @@ def balance(r):
   return r
 
 
-def add_node(r, key, val, weight):
+def add_node(r, time, val, weight):
   """
   Takes a single node and returns a new subtree in which the old node and
   the new node are siblings of an inner node.
   """
   old_node = r
-  new_node = create_leaf_node(key, val, weight)
+  new_node = create_leaf_node(time, val, weight)
   inner_node = Node(height=1, leaves=2)
 
-  if new_node.key < old_node.key:
+  if new_node.time < old_node.time:
     inner_node.left = new_node
     inner_node.right = old_node
   else:
     inner_node.left = old_node
     inner_node.right = new_node
 
-  inner_node.max_left = inner_node.left.key
+  inner_node.max_left = inner_node.left.time
+  inner_node.min_right = inner_node.right.time
   inner_node.sum = new_node.weight + old_node.weight
   inner_node.smax = inner_node_smax(inner_node)
 
   return inner_node
 
 
-def remove_node(r, key, weight):
+def delete_node(r, time):
   """
-  Assumes a node exists and removes it from the tree. This function may only
+  Assumes a node exists and deletes it from the tree. This function may only
   be called when *you're sure* the node exists, since it always decreases counters.
   """
-  if r.key == key:
+  if r.time == time:
     return None
 
-  if key <= r.max_left:
-    r.left = remove_node(r.left, key, weight)
+  if time < r.min_right:
+    r.left = delete_node(r.left, time)
   else:
-    r.right = remove_node(r.right, key, weight)
+    r.right = delete_node(r.right, time)
 
   r.leaves -= 1
 
-  # If one of the inner node's children is missing, we can remove it.
+  # If one of the inner node's children is missing, we can delete it.
   if r.left is None or r.right is None:
     return r.left or r.right
 
-  # The only way to change this field is if we remove the node that
+  # The only way to change this field is if we delete the node that
   # was previously here. Otherwise, it stays the same.
-  if r.max_left == key:
+  if r.max_left == time:
     r.max_left = r.left.max_left
+  
+  if r.min_right == time:
+    r.min_right = r.right.min_right
 
   r.height = max(r.left.height, r.right.height) + 1
   r.sum = r.left.sum + r.right.sum
   r.smax = inner_node_smax(r)
 
   return balance(r)
+
+
+def get_value(r, k):
+  if r.is_leaf():
+    return r.val
+  elif r.right.smax > k:
+    return get_value(r.right, k)
+  else:
+    return get_value(r.left, k - r.right.sum)
 
 
 # =========================================
@@ -206,40 +224,41 @@ def avl():
   return None
 
 
-def avl_search(r, key):
+def avl_search(r, time):
   if r is None:
     return False
 
-  if r.key == key:
+  if r.time == time:
     return True
-  elif key <= r.max_left:
-    return avl_search(r.left, key)
+  elif time < r.min_right:
+    return avl_search(r.left, time)
   else:
-    return avl_search(r.right, key)
+    return avl_search(r.right, time)
 
 
-def avl_insert(r, key, val, weight):
+def avl_insert(r, time, val, weight):
   """
   Insert a new value at the BST. Values are always added to leaves, which
   are referenced by inner nodes. For the sake of simplicity, the max_left
   field on leaf is the leaf's value itself.
   """
   if r is None:
-    return create_leaf_node(key, val, weight)
+    return create_leaf_node(time, val, weight)
 
   if r.is_leaf():
-    return add_node(r, key, val, weight)
+    return add_node(r, time, val, weight)
 
-  if key <= r.max_left:
-    r.left = avl_insert(r.left, key, val, weight)
+  if time < r.min_right:
+    r.left = avl_insert(r.left, time, val, weight)
   else:
-    r.right = avl_insert(r.right, key, val, weight)
+    r.right = avl_insert(r.right, time, val, weight)
 
   # Updates the counters of the inner node considering the changes made
   # deep down in the subtree.
   r.leaves += 1
   r.height = max(r.left.height, r.right.height) + 1
   r.max_left = max(r.max_left, r.left.max_left)
+  r.min_right = min(r.min_right, r.right.min_right)
 
   r.sum = r.left.sum + r.right.sum
   r.smax = inner_node_smax(r)
@@ -247,71 +266,64 @@ def avl_insert(r, key, val, weight):
   return balance(r)
 
 
-def avl_remove(r, key, weight):
+def avl_delete(r, time):
   """
   Wrapper function used to ensure a given node exists in the tree before
-  trying to remove it.
+  trying to delete it.
   """
-  if not avl_search(r, key):
+  if not avl_search(r, time):
     return r
 
-  return remove_node(r, key, weight)
+  return delete_node(r, time)
 
 
-def avl_sum(r, key):
+def avl_sum(r, time):
   """
-  Returns the sum of the weights of all nodes smaller than a given key.
+  Returns the sum of the weights of all nodes smaller than a given time.
   """
   if r is None:
     return 0
 
   sum = 0
   while not r.is_leaf():
-    if key <= r.max_left:
+    if time < r.min_right:
       r = r.left
     else:
       sum += r.left.sum
       r = r.right
 
-  if r.key == key:
+  if r.time == time:
     sum += r.weight
 
   return sum
 
 
-def avl_count(r, x):
-  """
-  Returns the number of elements t in the bst such that t < x.
-  """
-  if r is None:
-    return 0
-
-  count = 0
-  while not r.is_leaf():
-    if x <= r.max_left:
-      r = r.left
+def avl_kth(r, time, k):
+  if r.is_leaf():
+    if r.is_push():
+      if r.time <= time:
+        return [r.val]
+      else:
+        return [None, 1]
     else:
-      count += r.left.leaves
-      r = r.right
+      if r.time <= time:
+        return [None, 2]
+      else:
+        return [None, 1]
+  elif time < r.min_right:
+    return avl_kth(r.left, time, k)
+  else:
+    kth_right = avl_kth(r.right, time, k)
+    
+    if kth_right[0] is None:
+      k -= kth_right[1]
 
-  return count
-
-
-def avl_kth(r, k):
-  """
-  Returns the k-th smallest element in the bst.
-  """
-  if r is None or k > r.leaves:
-    return -1
-
-  while not r.is_leaf():
-    if k <= r.left.leaves:
-      r = r.left
+      if r.left.smax > k:
+        return [get_value(r.left, k)]
+      else:
+        return [None, kth_right[1] + r.left.sum]
     else:
-      k -= r.left.leaves
-      r = r.right
-
-  return r.val
+      return kth_right
 
 
 def avl_print(r):
@@ -323,6 +335,3 @@ def avl_print(r):
     print_in_levels(r, level=0)
 
   print('\n')
-
-
-# min(left.smax, left.sum + right.smax)

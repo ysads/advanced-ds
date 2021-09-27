@@ -1,0 +1,27 @@
+Stack()
+
+Push(1, 1)
+Push(2, 2)
+Pop(3)
+Push(4, 3)
+Pop(5)
+Push(6, 4)
+Push(7, 5)
+Pop(8)
+
+Print()
+
+Top(5)
+Size(5)
+
+Top(3)
+Size(3)
+
+Top(4)
+Size(4)
+
+Delete(3)
+Print()
+
+Top(4)
+Size(4)

@@ -4,35 +4,44 @@ NUSP: 8910368
 
 WARNING: This program requires python 3.x!
 """
+from avl import avl, avl_insert, avl_delete, avl_print, avl_sum, avl_kth
 
-# =========================================
-# Data structures
-# =========================================
-
+PUSH = 1
+POP = -1
 
 # =========================================
 # Interface functions
 # =========================================
 
 def stack():
-  return None
+  return avl()
 
 
-def push(t, x):
-  return None
+def push(r, t, val):
+  return avl_insert(r, t, val, PUSH)
 
 
-def pop(t, x):
-  return None
+def pop(r, t):
+  return avl_insert(r, t, None, POP)
 
 
-def size(t):
-  return 0
+def delete(r, t):
+  return avl_delete(r, t)
 
 
-def top(t):
-  return 0
+def size(r, t):
+  return avl_sum(r, t)
 
 
-def kth(t, k):
-  return 0
+def top(r, t):
+  response = avl_kth(r, t, 1)
+  return response[0] or None
+
+
+def kth(r, t, k):
+  response = avl_kth(r, t, k)
+  return response[0] or None
+
+
+def print_stack(r):
+  avl_print(r)

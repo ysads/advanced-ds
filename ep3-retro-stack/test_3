@@ -1,0 +1,20 @@
+Stack()
+
+Push(10, 10)
+Push(15, 15)
+Pop(19)
+Push(20, 20)
+Pop(25)
+Push(30, 30)
+
+Print()
+# Top(10)
+# Top(30)
+# Top(25)
+Top(26)
+
+# Delete(30)
+# Print()
+# Top(10)
+# Top(15)
+# Top(30)
