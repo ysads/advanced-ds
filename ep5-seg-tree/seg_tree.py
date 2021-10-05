@@ -4,10 +4,13 @@ NUSP: 8910368
 
 WARNING: This program requires python 3.x!
 """
-import pdb
 import math
 from enum import Enum
 
+
+# =========================================
+# Data structures
+# =========================================
 
 class Intersection(Enum):
   CONTAINS = 1
@@ -31,6 +34,17 @@ class Node:
 
   def __str__(self):
     return f"[{self.start}, {self.end}]: {self.segments}"
+
+
+class SegTree:
+  def __init__(self, segments=[], root=None):
+    self.root = root
+    self.count = len(segments)
+    self.segments = segments
+
+
+  def __len__(self):
+    return self.count
 
 
 # =========================================
@@ -130,17 +144,14 @@ def seg_tree(s):
   for segment in s:
     root = add_segments_to_tree(root, segment)
 
-  return root
+  return SegTree(root=root, segments=s)
 
 
-def seg_find(r, x):
-  """
-  We don't start at the root node because it obviously contains everything.
-  """
-  return search(r.left, x) + search(r.right, x)
+def seg_find(sst, x):
+  return search(sst.root, x)
 
 
-def seg_print(r):
+def seg_print(sst):
   print('\n')
-  print_in_levels(r, level=0)
+  print_in_levels(sst.root, level=0)
   print('\n')
