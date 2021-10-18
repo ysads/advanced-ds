@@ -18,6 +18,10 @@ class Heap:
     return self.n
 
 
+  def __getitem__(self, k):
+    return self.items[k]
+
+
   def min(self):
     self.assert_nature("min")
 
@@ -54,12 +58,19 @@ class Heap:
     self.swim(self.n)
 
 
-  def print(self):
+  def print(self, plain=False):
     if self.n == 0:
       return print('->')
 
     print("==================================\n")
-    self.print_tree()
+
+    if plain:
+      print("->", end=" ")
+      for i in range(1, self.n + 1):
+        print(self.items[i], end=" ⬤ ")
+    else:
+      self.print_tree()
+
     print("\n")
 
 
