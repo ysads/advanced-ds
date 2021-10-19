@@ -13,7 +13,7 @@ class Heap:
     self.nature = nature
     self.comparator = comparator or (lambda x, y: x - y)
     self.id = id_fn or (lambda x: x)
-    self.id_to_index = {}
+    self.ids = {}
 
 
   def __len__(self):
@@ -55,7 +55,7 @@ class Heap:
 
 
   def delete(self, id):
-    k = self.id_to_index[id]
+    k = self.ids[id]
 
     if k is None:
       raise ValueError("Found nothing! (◕⌓◕;)")
@@ -66,23 +66,19 @@ class Heap:
   def insert(self, x):
     id = self.id(x)
 
-    if id in self.id_to_index:
+    if id in self.ids:
       raise ValueError("Duplicate ids are not supported! (◕⌓◕;)")
 
     self.items.append(x)
     self.n += 1
 
     k = self.swim(self.n)
-    self.id_to_index[id] = k
+    self.ids[id] = k
 
 
   def print(self, plain=False):
     if self.n == 0:
       return print('->')
-
-    print("==================================\n")
-    print(self.id_to_index)
-    print("\n______----_____----_____----______\n")
 
     if plain:
       print("->", end=" ")
@@ -93,6 +89,12 @@ class Heap:
 
     print("\n")
 
+
+  def update(self, id, new_item):
+    if id in self.ids:
+      self.delete(id)
+
+    self.insert(new_item)
 
   # =========================================
   # Utilitary functions
@@ -119,8 +121,8 @@ class Heap:
     self.items[k1] = self.items[k2]
     self.items[k2] = aux
 
-    self.id_to_index[self.id(self.items[k1])] = k1
-    self.id_to_index[self.id(self.items[k2])] = k2
+    self.ids[self.id(self.items[k1])] = k1
+    self.ids[self.id(self.items[k2])] = k2
 
 
   def swim(self, k):
@@ -171,7 +173,7 @@ class Heap:
     # the old first so that we free space in our array. We also make
     # sure to remove its entry from our ids table.
     self.items.pop()
-    self.id_to_index.pop(self.id(item))
+    self.ids.pop(self.id(item))
 
     return item
 

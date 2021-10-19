@@ -124,6 +124,10 @@ def test_3():
   h.print()
   print("max: ", h.max())
 
+  h.update('x', ('x', 11))
+  h.print()
+  print("max: ", h.max())
+
   h.del_max()
   h.print()
   print("max: ", h.max())
