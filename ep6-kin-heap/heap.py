@@ -7,11 +7,13 @@ WARNING: This program requires python 3.x!
 from math import floor
 
 class Heap:
-  def __init__(self, nature="min", comparator=None):
+  def __init__(self, nature="min", comparator=None, id_fn=None):
     self.items = [None]
     self.n = 0
     self.nature = nature
     self.comparator = comparator or (lambda x, y: x - y)
+    self.id = id_fn or (lambda x: x)
+    self.id_to_index = {}
 
 
   def __len__(self):
@@ -43,19 +45,35 @@ class Heap:
   def del_min(self):
     self.assert_nature("min")
 
-    return self.remove_top()
+    return self.remove_at(1)
 
 
   def del_max(self):
     self.assert_nature("max")
 
-    return self.remove_top()
+    return self.remove_at(1)
+
+
+  def delete(self, id):
+    k = self.id_to_index[id]
+
+    if k is None:
+      raise ValueError("Found nothing! (◕⌓◕;)")
+
+    self.remove_at(k)
 
 
   def insert(self, x):
+    id = self.id(x)
+
+    if id in self.id_to_index:
+      raise ValueError("Duplicate ids are not supported! (◕⌓◕;)")
+
     self.items.append(x)
     self.n += 1
-    self.swim(self.n)
+
+    k = self.swim(self.n)
+    self.id_to_index[id] = k
 
 
   def print(self, plain=False):
@@ -63,6 +81,8 @@ class Heap:
       return print('->')
 
     print("==================================\n")
+    print(self.id_to_index)
+    print("\n______----_____----_____----______\n")
 
     if plain:
       print("->", end=" ")
@@ -91,9 +111,16 @@ class Heap:
 
 
   def swap(self, k1, k2):
+    """
+    Swaps the indices of two items, updating the id mapping to reflect
+    their new indices.
+    """
     aux = self.items[k1]
     self.items[k1] = self.items[k2]
     self.items[k2] = aux
+
+    self.id_to_index[self.id(self.items[k1])] = k1
+    self.id_to_index[self.id(self.items[k2])] = k2
 
 
   def swim(self, k):
@@ -104,6 +131,8 @@ class Heap:
     while k > 1 and self.is_misplaced(floor(k/2), k):
       self.swap(k, floor(k/2))
       k = floor(k/2)
+
+    return k
 
 
   def sink(self, k):
@@ -124,29 +153,31 @@ class Heap:
       k = j
 
 
-  def remove_top(self):
+  def remove_at(self, k):
     """
-    Put the last item at the top of the heap, slowly sinking it until
+    Put the last item at the desired k, slowly sinking it until
     it's in the right place.
     """
     if self.n == 0:
       return None
 
-    top = self.items[1]
+    item = self.items[k]
 
-    self.swap(1, self.n)
+    self.swap(k, self.n)
     self.n -= 1
-    self.sink(1)
+    self.sink(k)
 
     # Since we swapped the old last and first items, we then remove
-    # the old first so that we free space in our array
+    # the old first so that we free space in our array. We also make
+    # sure to remove its entry from our ids table.
     self.items.pop()
+    self.id_to_index.pop(self.id(item))
 
-    return top
+    return item
 
 
   def print_tree(self, key=1, level=0):
     if key <= self.n:
-      self.print_tree(2 * key, level + 1)
-      print(' ' * 8 * level + '->', self.items[key])
       self.print_tree(2 * key + 1, level + 1)
+      print(' ' * 8 * level + '->', self.items[key])
+      self.print_tree(2 * key, level + 1)
