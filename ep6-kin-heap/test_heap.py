@@ -124,6 +124,19 @@ def test_3():
   h.print()
   print("max: ", h.max())
 
+  print(">>-------------- ")
+
+  h.print(plain=True)
+
+  print(f"sibling of {4}: {h.sibling_index(4)}") # ('r', 4)
+  print(f"sibling of {5}: {h.sibling_index(5)}") # ('b', 5)
+  print(f"sibling of {2}: {h.sibling_index(2)}") # ('z', 1)
+  print(f"sibling of {3}: {h.sibling_index(3)}") # ('x', 3)
+  print(f"sibling of {1}: {h.sibling_index(1)}") # None
+  print(f"sibling of {6}: {h.sibling_index(6)}") # None
+
+  print(">>-------------- ")
+
   h.update('x', ('x', 11))
   h.print()
   print("max: ", h.max())

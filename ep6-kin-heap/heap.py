@@ -24,6 +24,10 @@ class Heap:
     return self.items[k]
 
 
+  def __setitem__(self, k, v):
+    self.items[k] = v
+
+
   def min(self):
     self.assert_nature("min")
 
@@ -95,6 +99,20 @@ class Heap:
       self.delete(id)
 
     self.insert(new_item)
+
+
+  def sibling_index(self, k):
+    if k <= 1:
+      return None
+
+    # The last element of a heap only has a sibling if the
+    # heap size is odd.
+    if k % 2:
+      return k - 1
+    elif k < self.n:
+      return k + 1
+    else:
+      return None
 
   # =========================================
   # Utilitary functions

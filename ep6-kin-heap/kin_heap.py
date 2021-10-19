@@ -22,38 +22,59 @@ class Element:
     return f"{self.id} ({self.x0})"
 
   def cross_time(self, other):
+    """
+    Uses basic math to determine at which time two elements will cross.
+    """
     return (other.x0 - self.x0) / (self.v - other.v)
 
   @classmethod
   def compare(cls, obj1, obj2):
     return obj1.x0 - obj2.x0
 
+  @classmethod
+  def id(cls, obj):
+    return obj.id
+
 
 class Certificate:
   """
   Represents a certificate between two elements.
   """
-  def __init__(self, index, expiration=inf):
+  def __init__(self, index, id, expiration=inf):
+    self.id = id
     self.index = index
     self.expiration = expiration
 
   def __str__(self):
-    return f"{self.index} ✝ ({self.expiration})"
+    return f"{self.index}|{self.id} ✝ ({self.expiration})"
 
   @classmethod
   def compare(cls, obj1, obj2):
     return obj1.expiration - obj2.expiration
 
+  @classmethod
+  def id(cls, obj):
+    return obj.id
+
 
 class KinHeap:
   def __init__(self, id, x0, v, n):
-    self.n = n
-    self.elements = Heap(nature="max", comparator=Element.compare)
-    self.certs = Heap(nature="min", comparator=Certificate.compare)
     self.now = 0
+    self.n = n
+    self.elements = Heap(
+      nature="max",
+      comparator=Element.compare,
+      id_fn=Element.id
+    )
+    self.certs = Heap(
+      nature="min",
+      comparator=Certificate.compare,
+      id_fn=Certificate.id
+    )
 
     self.build_items_heap(id, x0, v)
     self.build_certs()
+
 
   # =========================================
   # Utilitary functions
@@ -70,23 +91,67 @@ class KinHeap:
       raise ValueError("What should happen here? (◕⌓◕;)")
 
     for i in range(2, len(self.elements)+1):
-      item = self.elements[i]
-      parent = self.elements[floor(i/2)]
+      self.certs.insert(self.certificate_of(i))
 
-      # Time can't be negative, thus we set the crossing point to
-      # infinity when it's negative
-      cross_time = item.cross_time(parent)
-      cross_time = cross_time if cross_time >= 0 else inf
 
-      cert = Certificate(index=i, expiration=cross_time)
-      self.certs.insert(cert)
+  def adjusted_cross_time(self, time):
+    """
+    Adjusts the cross time to reasonable value. Needed since time can't be negative
+    and we don't care about times that behind now.
+    """
+    if time > self.now:
+      return time
 
-      print(f"{item.id} -> {parent.id}: {cross_time}")
+    return inf
+
+
+  def certificate_of(self, i):
+    """
+    Finds where an element crosses with its parent and generates a certificate
+    expiring at that moment.
+    """
+    elem = self.elements[i]
+    parent = self.elements[floor(i/2)]
+
+    cross_time = self.adjusted_cross_time(elem.cross_time(parent))
+
+    return Certificate(index=i, id=elem.id, expiration=cross_time)
+
+
+  def update_certificate(self, k):
+    element = self.elements[k]
+    c = self.certificate_of(k)
+    self.certs.update(element.id, c)
 
 
   def event(self, cert):
-    # updates q and v
-    print("* ", cert)
+    """
+    Given an expired certificate, it updates the heap state so that it reflects
+    current largest item. It also updates the certificates related to the elements
+    referred by the expired certificate.
+    """
+    i = cert.index
+
+    # Update elements to reflect that i is now *after* i/2
+    aux = self.elements[i]
+    self.elements[i] = self.elements[floor(i/2)]
+    self.elements[floor(i/2)] = aux
+
+    # Only elements below 3rd level have grandparents
+    if i >= 4:
+      self.update_certificate(floor(i/2))
+
+    self.update_certificate(i)
+
+    if 2*i <= self.n:
+      self.update_certificate(2*i)
+
+    if 2*i+1 <= self.n:
+      self.update_certificate(2*i)
+
+    s = self.elements.sibling_index(i)
+    if s:
+      self.update_certificate(s)
 
   # =========================================
   # Interface functions
@@ -125,9 +190,11 @@ class KinHeap:
 
 
   def print(self):
+    print("\n\n=====================")
     print("main heap: ")
-    self.elements.print(plain=True)
+    self.elements.print(plain=False)
 
-    print("=====================")
+    print("---------------------")
     print("certs:")
-    self.certs.print()
+    self.certs.print(plain=True)
+    print("=====================\n\n")
