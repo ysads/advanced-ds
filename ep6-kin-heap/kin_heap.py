@@ -104,7 +104,7 @@ class KinHeap:
   def adjusted_cross_time(self, time):
     """
     Adjusts the cross time to reasonable value. Needed since time can't be negative
-    and we don't care about times that behind now.
+    and we don't care about times behind now.
     """
     if time > self.now:
       return time
@@ -128,12 +128,13 @@ class KinHeap:
   def update_certificate(self, k):
     element = self.elements[k]
     c = self.certificate_of(k)
+    print(f" … updated {k}: {c}")
     self.certs.update(element.id, c)
 
 
   def event(self, cert):
     """
-    Given an expired certificate, it updates the heap state so that it reflects
+    Given an expired certificate, it updates the heap state so it reflects the
     current largest item. It also updates the certificates related to the elements
     referred by the expired certificate.
     """
@@ -193,7 +194,16 @@ class KinHeap:
 
 
   def insert(self, id, xnow, v):
-    return None
+    """
+    Calculates what would've been the x0 for that element and inserts it into the
+    heap, recalculating all elements until the top.
+    """
+    x0 = xnow - v * self.now
+    k = self.elements.insert(Element(id, x0, v))
+
+    while k > 1:
+      self.update_certificate(k)
+      k = floor(k/2)
 
 
   def max(self):

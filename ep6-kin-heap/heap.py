@@ -79,6 +79,8 @@ class Heap:
     k = self.swim(self.n)
     self.ids[id] = k
 
+    return k
+
 
   def print(self, plain=False):
     if self.n == 0:
