@@ -44,4 +44,16 @@ move_to(h, 2)
 move_to(h, 6)
 move_to(h, 12)
 move_to(h, 17)
-move_to(h, 35)
+
+# p4 will be max for t⪆30
+h.change(3, 1)
+h.print()
+
+move_to(h, 30)  # p2 leads still
+move_to(h, 31)  # p4 takes the lead
+
+# p1 will be max for t⪆45
+h.change(2, 1.5)
+
+move_to(h, 40)  # p4 is still the leader
+move_to(h, 45)  # p1 takes the lead

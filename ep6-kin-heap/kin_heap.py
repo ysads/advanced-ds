@@ -27,6 +27,13 @@ class Element:
     """
     return (other.x0 - self.x0) / (self.v - other.v)
 
+  def updated_x0(self, new_v, t):
+    """
+    Returns in which position the elements would have started if it were
+    where it is now moving with the new speed.
+    """
+    return  self.v * t + self.x0 - new_v * t
+
   @classmethod
   def compare(cls, obj1, obj2):
     return obj1.x0 - obj2.x0
@@ -170,7 +177,19 @@ class KinHeap:
 
 
   def change(self, i, v):
-    return None
+    element = self.elements[i]
+    new_element = Element(id=element.id, v=v, x0=element.updated_x0(v, self.now))
+
+    self.elements[i] = new_element
+
+    if i > 1:
+      self.update_certificate(i)
+
+    if 2*i <= self.n:
+      self.update_certificate(2*i)
+
+    if 2*i+1 <= self.n:
+      self.update_certificate(2*i+1)
 
 
   def insert(self, id, xnow, v):
