@@ -40,7 +40,7 @@ class MaxHeap:
 
   def delete(self, id):
     k = self.ids[id]
-    self.remove_at(k)
+    return self.remove_at(k)
 
 
   def insert(self, x):
@@ -59,14 +59,13 @@ class MaxHeap:
 
 
   def print(self, plain=False):
-    print("\n")
     if self.n == 0:
       return print('->')
 
     if plain:
       print("->", end=" ")
       for i in range(1, self.n + 1):
-        print(f"{i}: {self.items[i]}", end=" ⬤ ")
+        print(f"{self.items[i]}", end=" ⬤ ")
     else:
       self.print_tree()
 
@@ -99,7 +98,8 @@ class MaxHeap:
 
 
   def is_less(self, k1, k2):
-    return self.comparator(self.items[k1], self.items[k2]) < 0
+    # return self.items[k1] < self.items[k2]
+    return self.comparator(self.items[k1], self.items[k2])
 
 
   def swap(self, k1, k2):
@@ -145,6 +145,8 @@ class MaxHeap:
       self.swap(k, j)
       k = j
 
+    return k
+
 
   def remove_at(self, k):
     """
@@ -161,10 +163,13 @@ class MaxHeap:
 
     # When removing from arbitrary position, swim if parent is greater
     # than k, or sink otherwise. Removing from top always means sinking.
+    last_k = None
     if k > 1 and self.is_less(floor(k/2), k):
-      self.swim(k)
+      last_k = self.swim(k)
     else:
-      self.sink(k)
+      last_k = self.sink(k)
+
+    print(f" ### last_k: {last_k}")
 
     # Since we swapped the old last and first items, we then remove
     # the old first so that we free space in our array. We also make
@@ -172,7 +177,7 @@ class MaxHeap:
     self.items.pop()
     self.ids.pop(self.id(item))
 
-    return item
+    return item, last_k
 
 
   def print_tree(self, key=1, level=0):

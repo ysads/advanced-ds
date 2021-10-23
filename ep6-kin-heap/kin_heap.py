@@ -5,10 +5,19 @@ NUSP: 8910368
 WARNING: This program requires python 3.x!
 """
 import pdb
-from heap import Heap
+from max_heap import MaxHeap
 from math import floor, inf
 
+
+# =========================================
+# Globals
+# =========================================
+
 now = 0
+
+# =========================================
+# Data structures
+# =========================================
 
 class Element:
   """
@@ -22,7 +31,11 @@ class Element:
 
 
   def __str__(self):
-    return f"{self.id} ({self.x0 + self.v * now})"
+    return f"{self.id} (x={self.curr_position()})"
+
+
+  def curr_position(self):
+    return self.x0 + self.v * now
 
 
   def cross_time(self, other):
@@ -41,9 +54,8 @@ class Element:
 
 
   @classmethod
-  def compare(cls, obj1, obj2):
-    print(f"… k1: {obj1.x0 + obj1.v * now} | k2: {obj2.x0 + obj2.v * now}")
-    return obj1.x0 + obj1.v * now - obj2.x0 + obj2.v * now
+  def is_less(cls, obj1, obj2):
+    return obj1.curr_position() < obj2.curr_position()
 
 
   @classmethod
@@ -66,8 +78,9 @@ class Certificate:
 
 
   @classmethod
-  def compare(cls, obj1, obj2):
-    return obj1.expiration - obj2.expiration
+  def is_less(cls, obj1, obj2):
+    # Uses -expiration as the heap's key to make it a min-heap
+    return -obj1.expiration < -obj2.expiration
 
 
   @classmethod
@@ -77,16 +90,15 @@ class Certificate:
 
 class KinHeap:
   def __init__(self, id, x0, v, n):
-    # now = 0
     self.n = n
-    self.elements = Heap(
-      nature="max",
-      comparator=Element.compare,
+    self.elements = MaxHeap(
+      comparator=Element.is_less,
       id_fn=Element.id
     )
-    self.certs = Heap(
-      nature="min",
-      comparator=Certificate.compare,
+
+    # To achieve a min-heap we use a max-heap with negative priorities
+    self.certs = MaxHeap(
+      comparator=Certificate.is_less,
       id_fn=Certificate.id
     )
 
@@ -138,7 +150,6 @@ class KinHeap:
   def update_certificate(self, k):
     element = self.elements[k]
     c = self.certificate_of(k)
-    print(f" … updated {k}: {c}")
     self.certs.update(element.id, c)
 
 
@@ -177,13 +188,13 @@ class KinHeap:
 
   def advance(self, t):
     global now
-    # print(f"****** now at {now} ***** advancing to {t}")
-    cert = self.certs.min()
+    cert = self.certs.max()
 
     while cert.expiration <= t:
       now = cert.expiration
-      self.event(self.certs.del_min())
-      cert = self.certs.min()
+      expired_cert, _ = self.certs.del_max()
+      self.event(expired_cert)
+      cert = self.certs.max()
 
     now = t
 
@@ -223,22 +234,26 @@ class KinHeap:
 
 
   def del_max(self):
-    element = self.elements.del_max()
+    element, k = self.elements.del_max()
+    self.n -= 1
 
-    self.elements.print()
+    # The new heap max doesn't need a certificate, let's remove it
+    self.certs.delete(self.max().id)
 
-    # print(f"  π.π removed: {element}")
-    # self.n -= 1
-    # self.certs = Heap(nature="min", comparator=Certificate.compare, id_fn=Certificate.id)
-    # self.build_certs()
-    # k = self.n
+    # We have to fix the certificates for this position's children
+    # since their parent changed
+    if 2*k <= self.n:
+      self.update_certificate(2*k)
 
-    # while k > 1:
-    #   self.update_certificate(k)
-    #   k = floor(k/2)
+    if 2*k + 1 <= self.n:
+      self.update_certificate(2*k+1)
+
+    # Keep fixing certificates until the top
+    while k > 1:
+      self.update_certificate(k)
+      k = floor(k/2)
 
     return element
-    # return None
 
 
   def delete(self, id):

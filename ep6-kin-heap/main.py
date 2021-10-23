@@ -30,7 +30,7 @@ def extract(feat, coll):
 def move_to(h, t):
   h.advance(t)
   h.print()
-  print(f"★★★ max at {t}: {h.max().id}")
+  print(f"★★★ max at t={t}: {h.max().id}")
 
 h = KinHeap(
   extract('id', lines),
@@ -40,19 +40,20 @@ h = KinHeap(
 )
 h.print()
 
+move_to(h, 1)
 move_to(h, 2)
 move_to(h, 6)
 move_to(h, 12)
 move_to(h, 17)
 
-# p4 takes the lead at ~30
+# p4 takes the lead a little after 30
 h.change(3, 1)
 h.print()
 
 move_to(h, 30)  # p2 leads still
 move_to(h, 31)  # p4 takes the lead
 
-# p1 takes the lead at ~47
+# p1 takes the lead a little before 47
 h.change(2, 1.5)
 
 move_to(h, 40)  # p4 is still the leader
@@ -60,11 +61,20 @@ move_to(h, 47)  # p1 takes the lead
 
 # p5 takes the lead at ~55
 h.insert('p5', 32, 2.5)
-# h.print()
+h.print()
 
 move_to(h, 54) # p1 still leads
 move_to(h, 56) # p5 is the lead
 
+# p3 takes the lead:
+# - at ~82,   if we remove p5
+# - at ~100,  if we mantain p5
+h.change(4, 4)
+h.print()
+
 h.del_max() # p5 removed, p1 becomes leader again
-# h.print()
-# print(f"★★★ new max is {h.max()}")
+h.print()
+print(f"★★★ new max is {h.max()}")
+
+move_to(h, 81)  # p1 leads
+move_to(h, 82)  # p3 now leads
