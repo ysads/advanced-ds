@@ -6,11 +6,10 @@ WARNING: This program requires python 3.x!
 """
 from math import floor
 
-class Heap:
-  def __init__(self, nature="min", comparator=None, id_fn=None):
+class MaxHeap:
+  def __init__(self, comparator=None, id_fn=None):
     self.items = [None]
     self.n = 0
-    self.nature = nature
     self.comparator = comparator or (lambda x, y: x - y)
     self.id = id_fn or (lambda x: x)
     self.ids = {}
@@ -28,43 +27,19 @@ class Heap:
     self.items[k] = v
 
 
-  def min(self):
-    self.assert_nature("min")
-
-    if self.n > 0:
-      return self.items[1]
-    else:
-      return None
-
-
   def max(self):
-    self.assert_nature("max")
-
     if self.n > 0:
       return self.items[1]
     else:
       return None
-
-
-  def del_min(self):
-    self.assert_nature("min")
-
-    return self.remove_at(1)
 
 
   def del_max(self):
-    self.assert_nature("max")
-
-    print("\n\n………………………………………")
     return self.remove_at(1)
 
 
   def delete(self, id):
     k = self.ids[id]
-
-    if k is None:
-      raise ValueError("Found nothing! (◕⌓◕;)")
-
     self.remove_at(k)
 
 
@@ -84,13 +59,14 @@ class Heap:
 
 
   def print(self, plain=False):
+    print("\n")
     if self.n == 0:
       return print('->')
 
     if plain:
       print("->", end=" ")
       for i in range(1, self.n + 1):
-        print(self.items[i], end=" ⬤ ")
+        print(f"{i}: {self.items[i]}", end=" ⬤ ")
     else:
       self.print_tree()
 
@@ -121,17 +97,9 @@ class Heap:
   # Utilitary functions
   # =========================================
 
-  def assert_nature(self, expected_nature):
-    if self.nature != expected_nature:
-      raise TypeError(f"Operation not available for {self.nature}-heap")
 
-
-  def is_misplaced(self, k1, k2):
-    print(f"… k1: {k1} | k2: {k2}")
-    if self.nature == "min":
-      return self.comparator(self.items[k1], self.items[k2]) > 0
-    else:
-      return self.comparator(self.items[k1], self.items[k2]) < 0
+  def is_less(self, k1, k2):
+    return self.comparator(self.items[k1], self.items[k2]) < 0
 
 
   def swap(self, k1, k2):
@@ -152,7 +120,7 @@ class Heap:
     Starting at a particular position, goes up on heap, swaping items
     until finding the correct place for the item originally at k.
     """
-    while k > 1 and self.is_misplaced(floor(k/2), k):
+    while k > 1 and self.is_less(floor(k/2), k):
       self.swap(k, floor(k/2))
       k = floor(k/2)
 
@@ -167,14 +135,13 @@ class Heap:
     while 2*k <= self.n:
       j = 2*k;
 
-      if j < self.n and self.is_misplaced(j, j+1):
+      if j < self.n and self.is_less(j, j+1):
         j += 1
-      print(f"… j: {j}")
 
-      if self.is_misplaced(j, k): # filho (j) é menor que o pai (k)
+      # Stop if a child (j) is smaller than its parent (k)
+      if self.is_less(j, k):
         break
 
-      print(f"……… swapping k: {k}({self.items[k].id}) and j: {j}({self.items[j].id})")
       self.swap(k, j)
       k = j
 
@@ -191,7 +158,13 @@ class Heap:
 
     self.swap(k, self.n)
     self.n -= 1
-    self.sink(k)
+
+    # When removing from arbitrary position, swim if parent is greater
+    # than k, or sink otherwise. Removing from top always means sinking.
+    if k > 1 and self.is_less(floor(k/2), k):
+      self.swim(k)
+    else:
+      self.sink(k)
 
     # Since we swapped the old last and first items, we then remove
     # the old first so that we free space in our array. We also make
