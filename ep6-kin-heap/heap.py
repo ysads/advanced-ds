@@ -55,6 +55,7 @@ class Heap:
   def del_max(self):
     self.assert_nature("max")
 
+    print("\n\n………………………………………")
     return self.remove_at(1)
 
 
@@ -126,6 +127,7 @@ class Heap:
 
 
   def is_misplaced(self, k1, k2):
+    print(f"… k1: {k1} | k2: {k2}")
     if self.nature == "min":
       return self.comparator(self.items[k1], self.items[k2]) > 0
     else:
@@ -167,10 +169,12 @@ class Heap:
 
       if j < self.n and self.is_misplaced(j, j+1):
         j += 1
+      print(f"… j: {j}")
 
-      if not self.is_misplaced(k, j):
+      if self.is_misplaced(j, k): # filho (j) é menor que o pai (k)
         break
 
+      print(f"……… swapping k: {k}({self.items[k].id}) and j: {j}({self.items[j].id})")
       self.swap(k, j)
       k = j
 

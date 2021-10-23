@@ -8,6 +8,8 @@ import pdb
 from heap import Heap
 from math import floor, inf
 
+now = 0
+
 class Element:
   """
   Instead of keeping three different arrays, one for each variable, we
@@ -18,8 +20,10 @@ class Element:
     self.x0 = x0
     self.v = v
 
+
   def __str__(self):
-    return f"{self.id} ({self.x0})"
+    return f"{self.id} ({self.x0 + self.v * now})"
+
 
   def cross_time(self, other):
     """
@@ -27,16 +31,20 @@ class Element:
     """
     return (other.x0 - self.x0) / (self.v - other.v)
 
+
   def updated_x0(self, new_v, t):
     """
     Returns in which position the elements would have started if it were
     where it is now moving with the new speed.
     """
-    return  self.v * t + self.x0 - new_v * t
+    return self.v * t + self.x0 - new_v * t
+
 
   @classmethod
   def compare(cls, obj1, obj2):
-    return obj1.x0 - obj2.x0
+    print(f"… k1: {obj1.x0 + obj1.v * now} | k2: {obj2.x0 + obj2.v * now}")
+    return obj1.x0 + obj1.v * now - obj2.x0 + obj2.v * now
+
 
   @classmethod
   def id(cls, obj):
@@ -52,12 +60,15 @@ class Certificate:
     self.index = index
     self.expiration = expiration
 
+
   def __str__(self):
     return f"{self.index}|{self.id} ✝ ({self.expiration})"
+
 
   @classmethod
   def compare(cls, obj1, obj2):
     return obj1.expiration - obj2.expiration
+
 
   @classmethod
   def id(cls, obj):
@@ -66,7 +77,7 @@ class Certificate:
 
 class KinHeap:
   def __init__(self, id, x0, v, n):
-    self.now = 0
+    # now = 0
     self.n = n
     self.elements = Heap(
       nature="max",
@@ -81,7 +92,6 @@ class KinHeap:
 
     self.build_items_heap(id, x0, v)
     self.build_certs()
-
 
   # =========================================
   # Utilitary functions
@@ -106,7 +116,7 @@ class KinHeap:
     Adjusts the cross time to reasonable value. Needed since time can't be negative
     and we don't care about times behind now.
     """
-    if time > self.now:
+    if time > now:
       return time
 
     return inf
@@ -166,20 +176,21 @@ class KinHeap:
   # =========================================
 
   def advance(self, t):
-    print(f"****** now at {self.now} ***** advancing to {t}")
+    global now
+    # print(f"****** now at {now} ***** advancing to {t}")
     cert = self.certs.min()
 
     while cert.expiration <= t:
-      self.now = cert.expiration
+      now = cert.expiration
       self.event(self.certs.del_min())
       cert = self.certs.min()
 
-    self.now = t
+    now = t
 
 
   def change(self, i, v):
     element = self.elements[i]
-    new_element = Element(id=element.id, v=v, x0=element.updated_x0(v, self.now))
+    new_element = Element(id=element.id, v=v, x0=element.updated_x0(v, now))
 
     self.elements[i] = new_element
 
@@ -198,8 +209,9 @@ class KinHeap:
     Calculates what would've been the x0 for that element and inserts it into the
     heap, recalculating all elements until the top.
     """
-    x0 = xnow - v * self.now
+    x0 = xnow - v * now
     k = self.elements.insert(Element(id, x0, v))
+    self.n += 1
 
     while k > 1:
       self.update_certificate(k)
@@ -210,8 +222,23 @@ class KinHeap:
     return self.elements.max()
 
 
-  def delete_max(self):
-    return None
+  def del_max(self):
+    element = self.elements.del_max()
+
+    self.elements.print()
+
+    # print(f"  π.π removed: {element}")
+    # self.n -= 1
+    # self.certs = Heap(nature="min", comparator=Certificate.compare, id_fn=Certificate.id)
+    # self.build_certs()
+    # k = self.n
+
+    # while k > 1:
+    #   self.update_certificate(k)
+    #   k = floor(k/2)
+
+    return element
+    # return None
 
 
   def delete(self, id):
