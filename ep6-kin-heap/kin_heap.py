@@ -162,9 +162,7 @@ class KinHeap:
     i = cert.index
 
     # Update elements to reflect that i is now *after* i/2
-    aux = self.elements[i]
-    self.elements[i] = self.elements[floor(i/2)]
-    self.elements[floor(i/2)] = aux
+    self.elements.swap(i, floor(i/2))
 
     # Only elements below 3rd level have grandparents
     if i >= 4:
@@ -257,7 +255,27 @@ class KinHeap:
 
 
   def delete(self, id):
-    return None
+    element, k = self.elements.delete(id)
+    self.n -= 1
+
+    # The removed item and the new heap max don't need a certificate, remove them.
+    self.certs.delete(id)
+    self.certs.delete(self.max().id)
+
+    # We have to fix the certificates for this position's children
+    # since their parent changed
+    if 2*k <= self.n:
+      self.update_certificate(2*k)
+
+    if 2*k + 1 <= self.n:
+      self.update_certificate(2*k+1)
+
+    # Keep fixing certificates until the top
+    while k > 1:
+      self.update_certificate(k)
+      k = floor(k/2)
+
+    return element
 
 
   def print(self):

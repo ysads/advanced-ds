@@ -39,6 +39,9 @@ class MaxHeap:
 
 
   def delete(self, id):
+    if id not in self.ids:
+      return
+
     k = self.ids[id]
     return self.remove_at(k)
 
@@ -168,8 +171,6 @@ class MaxHeap:
       last_k = self.swim(k)
     else:
       last_k = self.sink(k)
-
-    print(f" ### last_k: {last_k}")
 
     # Since we swapped the old last and first items, we then remove
     # the old first so that we free space in our array. We also make
