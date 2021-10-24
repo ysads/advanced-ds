@@ -3,11 +3,14 @@ Nome: Ygor Sad Machado
 NUSP: 8910368
 
 WARNING: This program requires python 3.x!
+
+Implements a kinect max-heap using two auxiliar max-heaps. The heap storing
+the certificates uses a negative expiration time as a key so that it behaves
+like a min-heap. `now` is implemented as a global so that instances of Element
+are able to use it.
 """
-import pdb
 from max_heap import MaxHeap
 from math import floor, inf
-
 
 # =========================================
 # Globals
@@ -22,7 +25,7 @@ now = 0
 class Element:
   """
   Instead of keeping three different arrays, one for each variable, we
-  define this class, which holds all information regarding a single element.
+  use this class, which holds all information about a single element.
   """
   def __init__(self, id, x0, v):
     self.id = id
@@ -63,9 +66,11 @@ class Element:
     return obj.id
 
 
+
 class Certificate:
   """
-  Represents a certificate between two elements.
+  Represents a certificate between two elements (child to parent).
+  Note it holds the index and the id of the child element.
   """
   def __init__(self, index, id, expiration=inf):
     self.id = id
@@ -74,7 +79,7 @@ class Certificate:
 
 
   def __str__(self):
-    return f"{self.index}|{self.id} ✝ ({self.expiration})"
+    return f"{self.index} (✝ {self.expiration})"
 
 
   @classmethod
@@ -88,14 +93,16 @@ class Certificate:
     return obj.id
 
 
+
 class KinHeap:
   def __init__(self, id, x0, v, n):
     self.n = n
+    # A max-heap containing the actual heap elements. This is meant to be
+    # easier than handling several arrays and keeping them updated.
     self.elements = MaxHeap(
       comparator=Element.is_less,
       id_fn=Element.id
     )
-
     # To achieve a min-heap we use a max-heap with negative priorities
     self.certs = MaxHeap(
       comparator=Certificate.is_less,
@@ -104,6 +111,7 @@ class KinHeap:
 
     self.build_items_heap(id, x0, v)
     self.build_certs()
+
 
   # =========================================
   # Utilitary functions
@@ -117,7 +125,7 @@ class KinHeap:
 
   def build_certs(self):
     if self.n <= 1:
-      raise ValueError("What should happen here? (◕⌓◕;)")
+      return
 
     for i in range(2, len(self.elements)+1):
       self.certs.insert(self.certificate_of(i))
@@ -155,7 +163,7 @@ class KinHeap:
 
   def event(self, cert):
     """
-    Given an expired certificate, it updates the heap state so it reflects the
+    Given an expired certificate, it updates the heap state so that it reflects the
     current largest item. It also updates the certificates related to the elements
     referred by the expired certificate.
     """
@@ -186,10 +194,14 @@ class KinHeap:
 
   def advance(self, t):
     global now
+
     cert = self.certs.max()
 
     while cert.expiration <= t:
       now = cert.expiration
+
+      # del_max returns both the expired certificate and the last index visited
+      # by swim, but we don't care about that here
       expired_cert, _ = self.certs.del_max()
       self.event(expired_cert)
       cert = self.certs.max()
@@ -243,7 +255,7 @@ class KinHeap:
     if 2*k <= self.n:
       self.update_certificate(2*k)
 
-    if 2*k + 1 <= self.n:
+    if 2*k+1 <= self.n:
       self.update_certificate(2*k+1)
 
     # Keep fixing certificates until the top
@@ -267,7 +279,7 @@ class KinHeap:
     if 2*k <= self.n:
       self.update_certificate(2*k)
 
-    if 2*k + 1 <= self.n:
+    if 2*k+1 <= self.n:
       self.update_certificate(2*k+1)
 
     # Keep fixing certificates until the top
@@ -279,11 +291,13 @@ class KinHeap:
 
 
   def print(self):
-    print("\n\n=====================")
+    print("\n\n✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦✦\n")
+    print(f"now = {now} | max is {self.max()}\n")
+    print("〰〰〰〰〰〰〰〰〰〰〰〰〰〰〰〰")
+
     print("main heap: ")
     self.elements.print(plain=False)
 
-    print("---------------------")
+    print("〰〰〰〰〰〰〰〰〰〰〰〰〰〰〰〰")
     print("certs:")
     self.certs.print(plain=True)
-    print("=====================\n\n")
