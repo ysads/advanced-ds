@@ -1,3 +1,14 @@
+"""
+Nome: Ygor Sad Machado
+NUSP: 8910368
+
+WARNING: This program requires python 3.x!
+
+This examples showcases the usage of a kinectic heap. Commenting all lines
+and running them incrementally helps visualizing what's happening. Note that
+`change` operation relies on the moment it runs to add the new point, thus
+calling it in other places alters completely the state of the heap.
+"""
 from kin_heap import KinHeap
 
 lines = [

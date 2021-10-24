@@ -7,6 +7,12 @@ WARNING: This program requires python 3.x!
 from math import floor
 
 class MaxHeap:
+  """
+  Implements a max-heap using arrays to store the heap elements. It uses
+  two auxiliar functions to know how to handle the elements:
+    - comparator: tells if first element is lesser than the second.
+    - id_fn: generates an id for the element it's given.
+  """
   def __init__(self, comparator=None, id_fn=None):
     self.items = [None]
     self.n = 0
@@ -58,6 +64,7 @@ class MaxHeap:
     k = self.swim(self.n)
     self.ids[id] = k
 
+    # Returns the index in which the element was inserted
     return k
 
 
@@ -68,7 +75,7 @@ class MaxHeap:
     if plain:
       print("->", end=" ")
       for i in range(1, self.n + 1):
-        print(f"{self.items[i]}", end=" ⬤ ")
+        print(f"{self.items[i]}", end=" 🞄  ")
     else:
       self.print_tree()
 
@@ -95,13 +102,12 @@ class MaxHeap:
     else:
       return None
 
+
   # =========================================
   # Utilitary functions
   # =========================================
 
-
   def is_less(self, k1, k2):
-    # return self.items[k1] < self.items[k2]
     return self.comparator(self.items[k1], self.items[k2])
 
 
@@ -178,6 +184,7 @@ class MaxHeap:
     self.items.pop()
     self.ids.pop(self.id(item))
 
+    # For convenience, also returns the last index visited by swim/sink
     return item, last_k
 
 
