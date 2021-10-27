@@ -23,3 +23,12 @@ print(treap_search(t, 1))   # True
 print(treap_search(t, 11))  # True
 print(treap_search(t, 0))   # False
 print(treap_search(t, 13))  # False
+
+treap_delete(t, 11)
+treap_print(t)
+
+treap_delete(t, 1)
+treap_print(t)
+
+treap_delete(t, 5)
+treap_print(t)

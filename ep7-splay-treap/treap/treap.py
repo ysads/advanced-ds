@@ -5,10 +5,14 @@ NUSP: 8910368
 WARNING: This program requires python 3.x!
 """
 import pdb
-from sys import maxsize
 from random import randint, seed
 
 seed(5000)
+
+
+# =========================================
+# Data structures
+# =========================================
 
 class Node:
   def __init__(self, left=None, right=None, value=None, parent=None, priority=0):
@@ -26,6 +30,7 @@ class Node:
 class Treap:
   def __init__(self):
     self.root = None
+
 
 # =========================================
 # Utilitary functions
@@ -118,6 +123,15 @@ def rand_priority():
   return randint(0, 100)
 
 
+def min_node(u):
+  if u is None:
+    return u
+
+  while u.left is not None:
+    u = u.left
+
+  return u
+
 
 def insert_node(u, new_node, parent):
   if u is None:
@@ -131,6 +145,35 @@ def insert_node(u, new_node, parent):
 
   return u
 
+
+def delete_node(u, x):
+# Case 1: Deleting an empty Node doesn't do anything.
+  if u is None:
+    return u
+
+  if x == u.value:
+    # Case 2: Node has just one child. If so, we just return it.
+    if u.left is None:
+      return u.right
+    elif u.right is None:
+      return u.left
+
+    # Case 3: Node has both children. In this case, we find the
+    # smallest node in the right subtree, delete it from there,
+    # and use it as the substitute to the node being deleted.
+    min_right = min_node(u.right)
+
+    u.right = delete_node(u.right, min_right.value)
+    u.value = min_right.value
+    u.priority = min_right.priority
+
+  # This is not the correct node so keep searching.
+  elif x < u.value:
+    u.left = delete_node(u.left, x)
+  else:
+    u.right = delete_node(u.right, x)
+
+  return u
 
 # =========================================
 # Interface functions
@@ -147,7 +190,7 @@ def treap_insert(t, x):
 
 
 def treap_delete(t, x):
-  return t
+  t.root = delete_node(t.root, x)
 
 
 def treap_search(t, x):
@@ -165,14 +208,8 @@ def treap_search(t, x):
 
 
 def treap_min(t):
-  u = t.root
-  if u is None:
-    return u
-
-  while u.left is not None:
-    u = u.left
-
-  return u.value
+  node = min_node(t.root)
+  return node if node is None else node.value
 
 
 def treap_print(t):
