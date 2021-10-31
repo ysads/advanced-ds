@@ -48,67 +48,56 @@ def print_in_levels(r, level):
     print_in_levels(r.left, level + 1)
 
 
-def set_parent(u, parent):
-  """
-  Safe way to update a node's parent regardless of null pointers.
-  """
-  if u is None:
-    return
-
-  u.parent = parent
-
-
-def update_child_on_parent(old, new):
-  """
-  Updates a ref to child node, taking into account whether that was a left
-  or a right child, when that child changes.
-  """
-  if old.parent:
-    if old.parent.left == old:
-      old.parent.left = new
-    else:
-      old.parent.right = new
-
-
-def rotate_right(u):
+def rotate_right(t, u):
   v = u.left
   u.left = v.right
+
+  if v.right:
+    v.right.parent = u
+
+  v.parent = u.parent
+
+  if u.parent is None:
+    t.root = v
+  elif u == u.parent.right:
+    u.parent.right = v
+  else:
+    u.parent.left = v
+
   v.right = u
-
-  update_child_on_parent(u, v)
-  set_parent(v, u.parent)
-  set_parent(u, v)
-  set_parent(u.left, u)
-
-  return v
+  u.parent = v
 
 
-def rotate_left(u):
+def rotate_left(t, u):
   v = u.right
   u.right = v.left
+
+  if v.left:
+    v.left.parent = u
+
+  v.parent = u.parent
+
+  if u.parent is None:
+    t.root = v
+  elif u == u.parent.left:
+    u.parent.left = v
+  else:
+    u.parent.right = v
+
   v.left = u
-
-  update_child_on_parent(u, v)
-  set_parent(v, u.parent)
-  set_parent(u, v)
-  set_parent(u.right, u)
-
-  return v
+  u.parent = v
 
 
-def heapify(u):
+def heap_swim(t, u):
   """
-  Uses max-heap property to rearrange the treap elements. It always returns the heap's
-  updated root.
+  Uses max-heap property to rearrange the treap elements upwards.
   """
   while u.parent != None:
     if u.priority > u.parent.priority:
       if u == u.parent.left:
-        new_u = rotate_right(u.parent)
+        rotate_right(t, u.parent)
       else:
-        new_u = rotate_left(u.parent)
-
-      u = new_u
+        rotate_left(t, u.parent)
     else:
       u = u.parent
 
@@ -147,7 +136,7 @@ def insert_node(u, new_node, parent):
 
 
 def delete_node(u, x):
-# Case 1: Deleting an empty Node doesn't do anything.
+  # Case 1: Deleting an empty Node doesn't do anything.
   if u is None:
     return u
 
@@ -175,6 +164,7 @@ def delete_node(u, x):
 
   return u
 
+
 # =========================================
 # Interface functions
 # =========================================
@@ -185,8 +175,8 @@ def treap():
 
 def treap_insert(t, x):
   new_node = Node(priority=rand_priority(), value=x)
-  insert_node(t.root, new_node, None)
-  t.root = heapify(new_node)
+  t.root = insert_node(t.root, new_node, None)
+  heap_swim(t, new_node)
 
 
 def treap_delete(t, x):
