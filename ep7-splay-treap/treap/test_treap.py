@@ -24,11 +24,18 @@ print(treap_search(t, 11))  # True
 print(treap_search(t, 0))   # False
 print(treap_search(t, 13))  # False
 
+# Removing a right leaf
 treap_delete(t, 11)
 treap_print(t)
 
-treap_delete(t, 1)
+# Removing a node with two children
+treap_delete(t, 3)
 treap_print(t)
 
-treap_delete(t, 5)
+# Extra removal just so 1 becomes a left leaf
+treap_delete(t, 4)
+treap_print(t)
+
+# Removing a left leaf
+treap_delete(t, 1)
 treap_print(t)

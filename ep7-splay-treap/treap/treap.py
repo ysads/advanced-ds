@@ -3,10 +3,20 @@ Nome: Ygor Sad Machado
 NUSP: 8910368
 
 WARNING: This program requires python 3.x!
+
+Implements a treap using an additional class to hold references to the
+root of the tree.
+Priorities are numbers between 0 and 100 – easier to debug for small datasets –
+but can be easily increased to whatever works best.
+The removal is done so we only remove leaves, and we use rotations to get that.
 """
-import pdb
 from random import randint, seed
 
+
+# =========================================
+# Always use the same random seed to make
+# tests consistent
+# =========================================
 seed(5000)
 
 
@@ -23,8 +33,10 @@ class Node:
     self.priority = priority
 
   def __str__(self):
-    parent_value = self.parent.value if self.parent else "-"
     return f"{self.value} [{self.priority}]"
+
+  def is_leaf(self):
+    return self.left is None and self.right is None
 
 
 class Treap:
@@ -122,6 +134,22 @@ def min_node(u):
   return u
 
 
+def search_node(u, x, parent):
+  """
+  Uses BST algorithm to search for x, returning whether it has been
+  found and the last node visited along the way.
+  """
+  if u is None:
+    return False, parent
+
+  if x == u.value:
+    return True, u
+  elif x <= u.value:
+    return search_node(u.left, x, u)
+  else:
+    return search_node(u.right, x, u)
+
+
 def insert_node(u, new_node, parent):
   if u is None:
     new_node.parent = parent
@@ -135,35 +163,28 @@ def insert_node(u, new_node, parent):
   return u
 
 
-def delete_node(u, x):
-  # Case 1: Deleting an empty Node doesn't do anything.
-  if u is None:
-    return u
-
-  if x == u.value:
-    # Case 2: Node has just one child. If so, we just return it.
-    if u.left is None:
-      return u.right
-    elif u.right is None:
-      return u.left
-
-    # Case 3: Node has both children. In this case, we find the
-    # smallest node in the right subtree, delete it from there,
-    # and use it as the substitute to the node being deleted.
-    min_right = min_node(u.right)
-
-    u.right = delete_node(u.right, min_right.value)
-    u.value = min_right.value
-    u.priority = min_right.priority
-
-  # This is not the correct node so keep searching.
-  elif x < u.value:
-    u.left = delete_node(u.left, x)
+def delete_leaf(t, u):
+  """
+  Trivial. Just nullify the corresp. pointer at parent.
+  """
+  # If has no parent this is the only node of the tree
+  if u.parent is None:
+    t.root = None
+  elif u.parent.left == u:
+    u.parent.left = None
   else:
-    u.right = delete_node(u.right, x)
+    u.parent.right = None
 
-  return u
 
+def max_child(u):
+  if u.left is None:
+    return u.right
+  elif u.right is None:
+    return u.left
+  elif u.left.priority > u.right.priority:
+    return u.left
+  else:
+    return u.right
 
 # =========================================
 # Interface functions
@@ -180,21 +201,27 @@ def treap_insert(t, x):
 
 
 def treap_delete(t, x):
-  t.root = delete_node(t.root, x)
+  """
+  To remove a node we make sure that it's a leaf. In case it's not
+  we rotate it down, using it's max priority child, until it becomes one.
+  """
+  _, u = search_node(t.root, x, None)
+
+  if not u.is_leaf():
+    c = max_child(u)
+    while c:
+      if c == u.right:
+        rotate_left(t, u)
+      else:
+        rotate_right(t, u)
+      c = max_child(u)
+
+  delete_leaf(t, u)
 
 
 def treap_search(t, x):
-  u = t.root
-
-  while u != None:
-    if x == u.value:
-      return True
-    elif x <= u.value:
-      u = u.left
-    else:
-      u = u.right
-
-  return False
+  found, _ = search_node(t.root, x, None)
+  return found
 
 
 def treap_min(t):
