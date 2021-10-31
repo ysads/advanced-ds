@@ -3,8 +3,13 @@ Nome: Ygor Sad Machado
 NUSP: 8910368
 
 WARNING: This program requires python 3.x!
+
+Implements a splay tree using an additional class to hold references to the
+root of the tree. This helps with updating references to the root while rotating
+nodes. This comes at the cost of extra recursive functions, though.
+Removal is done using two auxiliary trees that ease the reasoning behind pointer
+changes. When priting the tree, it's parent is shown wrapped in parens.
 """
-import pdb
 
 class Node:
   def __init__(self, left=None, right=None, value=None, parent=None):
@@ -22,10 +27,6 @@ class Node:
       return None
     else:
       return self.parent.parent
-
-  # @classmethod
-  # def empty(cls):
-  #   return cls()
 
 
 class SplayTree:
@@ -110,7 +111,6 @@ def splay(t, u):
         rotate_right(t, p)
         rotate_left(t, g)
 
-    # print(f"…… post-u: {u.value}")
   return u
 
 
@@ -144,6 +144,9 @@ def insert_node(u, new_node, parent):
 
 
 def min_node(u):
+  if u is None:
+    return None
+
   while u.left:
     u = u.left
   return u
@@ -183,22 +186,58 @@ def st_insert(t, x):
   splay(t, new_node)
 
 
+def st_delete(t, x):
+  found, last_visited = search_node(t.root, x, None)
+  splay(t, last_visited)
+
+  # If lookup failed the deepest node visited is already the root
+  # and we don't have to splay anything else.
+  if not found:
+    return
+
+  # Creates additional trees to help splaying new root after removal.
+  left_t = st()
+  right_t = st()
+
+  # Remove links between the node to remove and its children, so that
+  # garbage collector takes care of freeing it.
+  left_t.root = t.root.left
+  if left_t.root != None:
+    left_t.root.parent = None
+
+  right_t.root = t.root.right
+  if right_t.root != None:
+    right_t.root.parent = None
+
+  min_right = min_node(right_t.root)
+  if min_right:
+    # If there's a min node in right subtree we splay it.
+    splay(right_t, min_right)
+
+    # Joins the aux trees into a single structure and make it the main tree.
+    # right_t.root.left = left_t.root
+    t.root = right_t.root
+    t.root.left = left_t.root
+    if t.root.left:
+      t.root.left.parent = t.root
+  else:
+    # A nullish min_right means there's nothing on right subtree
+    # Then we resort to using left subtree's node as root
+    t.root = left_t.root
+
+
 def st_search(t, x):
-  value, last_node_visited = search_node(t.root, x, None)
+  """
+  Perform a lookup for a value, performing a splay at the last node visited.
+  """
+  found, last_node_visited = search_node(t.root, x, None)
   splay(t, last_node_visited)
-  return value
+  return found
 
 
 def st_min(t):
-  r = t.root
-
-  if r is None:
-    return r
-
-  while r.left is not None:
-    r = r.left
-
-  return r.value
+  u = min_node(t.root)
+  return u.value if u else None
 
 
 def st_print(t):
