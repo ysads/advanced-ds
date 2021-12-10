@@ -12,6 +12,7 @@ The removal is done so we only remove leaves, and we use rotations to get that.
 """
 from pprint import pprint
 
+
 def suffixes_vector(T):
   """
   Naïvely builds the suffix vector by slicing the text T and leveraging
@@ -27,7 +28,7 @@ def suffixes_vector(T):
   pairs.sort(key=lambda s: s[0])
   suffixes = list(map(lambda s: s[1], pairs))
 
-  print("\nßßß *~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~* ßßß")
+  print("\n*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*")
   pprint(list(map(lambda s: s[0], pairs)))
 
   return suffixes
