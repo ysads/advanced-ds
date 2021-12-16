@@ -1,63 +1,50 @@
-from search import *
 from searcher import Searcher
 from pprint import pprint
 
 
 def dump(label, vector):
-  print("\n*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~* ")
+  print("\n-------------------------------------- ")
   print(f"{label} •• {len(vector)}")
   pprint(vector)
 
 
+def search(s, w):
+  print(f"Found {w}? {s.simple_search(w)}")
+
+
 def test_0():
-  print("\n\n\n==========================================")
-  print("||               TEST 0                 ||")
-  print("==========================================\n\n")
+  print("\n\n\n<*><*><*><*><*><*><*><*><*><*><*><*><*><*><*><*><*><*><*><*>")
+  print("TEST 0\n----------\n")
   T = open("test_0.txt", "r").read()
-  
+
   print(f"{T} ••• [{len(T)}]")
-  print("\n*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~* ")
+  print("\n-------------------------------------- ")
 
-  sv = suffixes_vector(T)
-  dump("sv", sv)
-  
-  lcp = lcp_vector(T, sv)
-  dump("lcp", lcp)
+  s = Searcher(T)
+  s.pre_process()
+  # dump("sv", s.suffixes)
+  dump("lcp", s.lcp)
+  # print("[0, 0, 1, 4, 1, 1, 0, 3, 0, 0, 0, 2]")
 
-  llcp, rlcp = extended_lcp_vectors(lcp)
-  dump("llcp", llcp)
-  dump("rlcp", rlcp)
+  dump("llcp", s.llcp)
+  # print("[0, 0, 0, 4, 1, 0, 0, 3, 0, 0, 0, 0]")
 
+  dump("rlcp", s.rlcp)
+  # print("[0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 2, 0]")
+
+  search(s, "bra")
+  # search(s, "racadabra")
+  # search(s, "racadabre")
+  # search(s, "zabra")
 
 
 def test_1():
-  print("\n\n\n==========================================")
-  print("||               TEST 1                 ||")
-  print("==========================================\n\n")
+  print("\n\n\n<*><*><*><*><*><*><*><*><*><*><*><*><*><*><*><*><*><*><*><*>")
+  print("TEST 1\n----------\n")
   T = open("test_1.txt", "r").read()
 
   print(f"{T} ••• [{len(T)}]")
-  print("\n*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~* ")
-
-  sv = suffixes_vector(T)
-  dump("sv", sv)
-
-  lcp = lcp_vector(T, sv)
-  dump("lcp", lcp)
-
-  llcp, rlcp = extended_lcp_vectors(lcp)
-  dump("llcp", llcp)
-  dump("rlcp", rlcp)
-
-
-def test_2():
-  print("\n\n\n==========================================")
-  print("||               TEST 2                 ||")
-  print("==========================================\n\n")
-  T = open("test_1.txt", "r").read()
-
-  print(f"{T} ••• [{len(T)}]")
-  print("\n*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~* ")
+  print("\n-------------------------------------- ")
 
   s = Searcher(T)
   s.pre_process()
@@ -66,11 +53,10 @@ def test_2():
   dump("llcp", s.llcp)
   dump("rlcp", s.rlcp)
 
-  s.search("ACCTG")
-  # s.search("GCCTG")
-  # s.search("CCTTTGCGAC")
+  # search(s, "ACCTG")
+  # search(s, "GCCTG")
+  # search(s, "CCTTTGCGAC")
 
 
-# test_0()
+test_0()
 # test_1()
-test_2()
