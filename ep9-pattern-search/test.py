@@ -9,6 +9,7 @@ def dump(label, vector):
 
 
 def search(s, w):
+  print("\n-------------------------------------- ")
   print(f"Found {w}? {s.simple_search(w)}")
 
 
@@ -32,10 +33,14 @@ def test_0():
   dump("rlcp", s.rlcp)
   # print("[0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 2, 0]")
 
-  search(s, "bra")
-  # search(s, "racadabra")
-  # search(s, "racadabre")
-  # search(s, "zabra")
+  search(s, "racadabra")      # racadabra
+  search(s, "racadabre")      # racadabra
+  search(s, "zabra")          # racadabra
+  search(s, "abracadabro")    # abracadabra
+  search(s, "cenabra")        # cadabra
+  search(s, "cadabra")        # cadabra
+  search(s, "adobra")         # adabra
+  search(s, "abra")           # abra
 
 
 def test_1():

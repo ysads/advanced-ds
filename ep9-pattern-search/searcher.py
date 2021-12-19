@@ -14,11 +14,10 @@ from pprint import pprint
 from enum import Enum
 from math import floor
 
-class Hint(Enum):
+class Dir(Enum):
   LEFT = "L"
   RIGHT = "R"
   FOUND = "F"
-  MISSED = "M"
 
 
 class CmpResult():
@@ -32,7 +31,7 @@ class CmpResult():
 
 class Searcher():
   def __init__(self, T):
-    self.T = T
+    self.T = T + '$'
     self.suffixes = []
     self.lcp = []
     self.llcp = []
@@ -48,17 +47,19 @@ class Searcher():
   def build_suffixes(self):
     """
     Naïvely builds the suffix vector by slicing the text T and leveraging
-    the lexico. sorting to python built-in functions.
+    the lexicographic sorting to python built-in functions.
     """
     pairs = []
 
-    for i in range(len(self.T), -1, -1):
-      s = self.T[i:] + "$"
+    # Start slicing T from the last position all the way down to its start.
+    for i in range(len(self.T)-1, -1, -1):
+      s = self.T[i:]
       pairs.append((s, i))
 
     pairs.sort(key=lambda s: s[0])
     suffixes = list(map(lambda s: s[1], pairs))
 
+    print("sufixes")
     pprint([f"{i} – {s[0]}" for i, s in enumerate(pairs)])
 
     self.suffixes = suffixes
@@ -93,7 +94,7 @@ class Searcher():
     self.llcp = [0 for _ in range(len(self.lcp))]
     self.rlcp = [0 for _ in range(len(self.lcp))]
 
-    self.lrlcp(i=0, j=len(self.lcp)-1, side="L")
+    self.lrlcp(0, len(self.lcp)-1, "L")
 
 
   def lrlcp(self, i, j, side=None):
@@ -103,203 +104,73 @@ class Searcher():
     single interval delimited by a pair (i,j). Also it's important to know in
     which direction is the search going to (left/right), hence the need for side.
     """
-    # print(f"({i} , {j}) [{side}]")
     if i == j - 1:
       value = self.lcp[j]
     else:
       m = floor((i + j) / 2)
-      self.lrlcp(i=i, j=m, side='L')
-      self.lrlcp(i=m, j=j, side='R')
+      self.lrlcp(i, m, 'L')
+      self.lrlcp(m, j, 'R')
       value = min(self.llcp[m], self.rlcp[m])
 
     if side == 'L':
-      # print(f"……………… L<{j}> = {value}")
       self.llcp[j] = value
     if side == 'R':
-      # print(f"……………… R<{i}> = {value}")
       self.rlcp[i] = value
 
 
   def simple_search(self, P):
     r = 0
-    i = self.suffixes[-1]
+    s = self.suffixes[-1]
 
-    # Checks if P is lexico. larger than or equals to the last suffix
-    # of T. If that's the case, just return the last suffix.
-    while r < len(P) and P[r] == self.T[i+r]:
+    # Checks if P is lexico. >= to the last suffix of T.
+    # If that's the case, just return the last suffix.
+    while r < len(P) and P[r] == self.T[s+r]:
       r += 1
-    if r == len(P) or P[r] > self.T[i+r]:
-      return self.T[i:]
+    if r == len(P) or P[r] > self.T[s+r]:
+      return self.T[s:]
 
     l = 0
     L = 0
     R = len(self.T)
-    M = 0
-    cnt = 0
-    result = CmpResult()
 
-    def update_pointers(cmp_result):
-      nonlocal L, R, l, r
+    while L < R - 1:
+      M = floor((L+R) / 2)
+      s = self.suffixes[M]
       
-      hint = cmp_result.hint
-      count = cmp_result.count
-      # print(f"matching chars: {count}")
+      print(f"|> {L} | {M} | {R}")
+      print(f"{P} <=> {self.T[s:]}")
 
-      if hint is Hint.MISSED:
-        print("🤨 missed!")
-        return
-      elif hint == Hint.LEFT:
-        # print("go left")
-        R = M
-        r += count
-      elif hint == Hint.RIGHT:
-        # print("go right")
+      direction, chars_matching = self.compare(P, s)
+
+      if direction is Dir.RIGHT:
         L = M
-        l += count
-      else:
-        print("🤨  found!")
-        return
-      return
-
-    while result.hint != Hint.FOUND and cnt < 4:
-    # while L < R-1:
-      cnt += 1
-      M = (L + R) // 2
-      print(f"\n\n≈≈≈≈> L ({L},{l}) | M: {M} | R ({R},{r})")
-      result = CmpResult()
-
-      if l == r:
-        print("eq")
-        result = self.compare_words(P, M, l)
-        update_pointers(result)
-      elif l > r:
-        print(f"≈≈> llcp[M] = {self.llcp[M]}")
-        if l < self.llcp[M]:
-          print("lLeft")
-          L = M
-        elif self.llcp[M] < l:
-          print("lRight")
-          R = M
-          r = self.llcp[M]
-        else:
-          print("lNeq")
-          result = self.compare_words(P, M, l)
-          update_pointers(result)
-      else:
-        print(f"≈≈> rlcp[M] = {self.rlcp[M]}")
-        if r < self.rlcp[M]:
-          print("rLeft")
-          R = M
-        elif self.rlcp[M] < r:
-          print("rRight")
-          L = M
-          l = self.rlcp[M]
-        else:
-          print("rNeq")
-          result = self.compare_words(P, M, l)
-          update_pointers(result)
-
-    return L
-
-
-  def search(self, word):
-    return self.search_recursive(word)
-
-
-  def search_recursive(self, word):
-    l = 0
-    r = 0
-    L = 0
-    R = len(self.lcp) - 1
-    M = floor((L + R) / 2)
-
-    def update_pointers(cmp_result):
-      nonlocal L, R, l, r
-      
-      hint = cmp_result.hint
-      count = cmp_result.count
-      # print(f"matching chars: {count}")
-
-      if hint is Hint.MISSED:
-        # print("missed!")
-        return
-      elif hint == Hint.LEFT:
-        # print("go left")
+        print(">>")
+      elif direction is Dir.LEFT:
         R = M
-        r += count
-      elif hint == Hint.RIGHT:
-        L = M
-        l += count
-        # print("go right")
+        print("<<")
       else:
-        return
-        # print("found!")
-      return
+        print("==")
+        return self.T[s:]
 
-    cnt = 0
-    while cnt < 4:
-      result = CmpResult()
-      cnt += 1
-      M = floor((L + R) / 2)
+      print("\n")
 
-      print(f"\n\n≈≈≈≈> L ({L},{l}) | M: {M} | R ({R},{r})")
+    return self.T[self.suffixes[L]:]
 
-      if l == r:
-        print("eq")
-        result = self.compare_words(word, M, l)
-        update_pointers(result)
-      elif l > r:
-        print(f"≈≈> llcp[M] = {self.llcp[M]}")
-        if l < self.llcp[M]:
-          print("lLeft")
-          L = M
-        elif self.llcp[M] < l:
-          print("lRight")
-          R = M
-          r = self.llcp[M]
-        else:
-          # it's comparing here but in the video it uses cond above!!!!
-          print("lNeq")
-          result = self.compare_words(word, M, l)
-          update_pointers(result)
-      else:
-        print(f"≈≈> rlcp[M] = {self.rlcp[M]}")
-        if r < self.rlcp[M]:
-          print("rLeft")
-          R = M
-        elif self.rlcp[M] < r:
-          print("rRight")
-          L = M
-          l = self.rlcp[M]
-        else:
-          print("rNeq")
-          result = self.compare_words(word, M, l)
-          update_pointers(result)
+  
+  def compare(self, P, s):
+    i = 0
+    j = s
 
-      print(">>> result ", result)
-      if result.hint == Hint.FOUND:
-        return True
+    while i < len(P) and j < len(self.T) and P[i] == self.T[j]:
+      i += 1
+      j += 1
 
+    print(f"lenT: {len(self.T)} | lenP: {len(P)} | i: {i} | j: {j}")
 
-  def compare_words(self, word, M, i):
-    j = i
-    suffix = self.suffixes[M]
-    other_word = self.T[suffix:] + '$'
-    
-    # print(f"\nm is {M}. suffix: {suffix}")
-    print(f"comparing {word} to {other_word}")
-
-    while j < len(word) and j < len(other_word):
-      # print(f"……… {word[j]} <==> {other_word[j]}")
-      if word[j] == other_word[j]:
-        j += 1
-      elif word[j] < other_word[j]:
-        return CmpResult(hint=Hint.LEFT, count=j-i)
-      else:
-        return CmpResult(hint=Hint.RIGHT, count=j-i)
-
-    if j < len(word):
-      return CmpResult(hint=Hint.MISSED, count=j-i)
+    # We matched every char in P to one in T
+    if i == len(P):
+      return Dir.FOUND, i
+    elif P[i] > self.T[j]:
+      return Dir.RIGHT, i
     else:
-      return CmpResult(hint=Hint.FOUND, count=j-i)
-
+      return Dir.LEFT, i
