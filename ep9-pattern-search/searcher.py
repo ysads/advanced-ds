@@ -140,24 +140,60 @@ class Searcher():
       print(f"|> {L} | {M} | {R}")
       print(f"{P} <=> {self.T[s:]}")
 
-      direction, chars_matching = self.compare(P, s)
-
-      if direction is Dir.RIGHT:
-        L = M
-        print(">>")
-      elif direction is Dir.LEFT:
-        R = M
-        print("<<")
+      if l == r:
+        print("eq")
+        direction, chars_matching = self.compare(P, s, l)
+        if direction is Dir.FOUND:
+          return self.T[s:]
+        else:
+          L, R, l, r = self.update_pointers(direction, chars_matching, L, M, R, l, r)
+      
+      elif l > r:
+        print(f"≈≈> llcp[M] = {self.llcp[M]}")
+        
+        if l < self.llcp[M]:
+          print("lLeft")
+          L = M
+        elif self.llcp[M] < l:
+          print("lRight")
+          R = M
+          r = self.llcp[M]
+        else:
+          print("lNeq")
+          
+          direction, chars_matching = self.compare(P, s, l)
+          if direction is Dir.FOUND:
+            print("==")
+            return self.T[s:]
+          else:
+            L, R, l, r = self.update_pointers(direction, chars_matching, L, M, R, l, r)
+      
       else:
-        print("==")
-        return self.T[s:]
+        print(f"≈≈> rlcp[M] = {self.rlcp[M]}")
+
+        if r < self.rlcp[M]:
+          print("rLeft")
+          R = M
+        elif self.rlcp[M] < r:
+          print("rRight")
+          L = M
+          l = self.rlcp[M]
+        else:
+          print("rNeq")
+
+          direction, chars_matching = self.compare(P, s, l)
+          if direction is Dir.FOUND:
+            print("==")
+            return self.T[s:]
+          else:
+            L, R, l, r = self.update_pointers(direction, chars_matching, L, M, R, l, r)
 
       print("\n")
 
     return self.T[self.suffixes[L]:]
 
   
-  def compare(self, P, s):
+  def compare(self, P, s, l):
     i = 0
     j = s
 
@@ -174,3 +210,12 @@ class Searcher():
       return Dir.RIGHT, i
     else:
       return Dir.LEFT, i
+
+  
+  def update_pointers(self, direction, chars_matching, L, M, R, l, r):
+    if direction is Dir.RIGHT:
+      print(">>")
+      return M, R, l, r+chars_matching
+    else:
+      print("<<")
+      return L, M, l+chars_matching, r

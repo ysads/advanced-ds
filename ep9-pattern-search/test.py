@@ -21,6 +21,19 @@ def test_0():
   print(f"{T} ••• [{len(T)}]")
   print("\n-------------------------------------- ")
 
+  # ['0 – $',
+  # '1 – a$',
+  # '2 – abra$',
+  # '3 – abracadabra$',
+  # '4 – acadabra$',
+  # '5 – adabra$',
+  # '6 – bra$',
+  # '7 – bracadabra$',
+  # '8 – cadabra$',
+  # '9 – dabra$',
+  # '10 – ra$',
+  # '11 – racadabra$']
+
   s = Searcher(T)
   s.pre_process()
   # dump("sv", s.suffixes)
@@ -37,10 +50,10 @@ def test_0():
   search(s, "racadabre")      # racadabra
   search(s, "zabra")          # racadabra
   search(s, "abracadabro")    # abracadabra
-  search(s, "cenabra")        # cadabra
-  search(s, "cadabra")        # cadabra
-  search(s, "adobra")         # adabra
-  search(s, "abra")           # abra
+  # search(s, "cenabra")        # cadabra
+  # search(s, "cadabra")        # cadabra
+  # search(s, "adobra")         # adabra
+  # search(s, "abra")           # abra
 
 
 def test_1():
