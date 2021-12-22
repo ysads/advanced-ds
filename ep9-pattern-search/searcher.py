@@ -13,6 +13,7 @@ The removal is done so we only remove leaves, and we use rotations to get that.
 from pprint import pprint
 from enum import Enum
 from math import floor
+import pdb
 
 class Dir(Enum):
   LEFT = "L"
@@ -107,7 +108,7 @@ class Searcher():
     if i == j - 1:
       value = self.lcp[j]
     else:
-      m = floor((i + j) / 2)
+      m = floor((i+j) / 2)
       self.lrlcp(i, m, 'L')
       self.lrlcp(m, j, 'R')
       value = min(self.llcp[m], self.rlcp[m])
@@ -127,30 +128,32 @@ class Searcher():
     while r < len(P) and P[r] == self.T[s+r]:
       r += 1
     if r == len(P) or P[r] > self.T[s+r]:
-      return self.T[s:]
+      return self.T[s:-1]
 
     l = 0
     L = 0
-    R = len(self.T)
+    R = len(self.T)-1
 
-    while L < R - 1:
+    while L < R-1:
       M = floor((L+R) / 2)
       s = self.suffixes[M]
-      
-      print(f"|> {L} | {M} | {R}")
+
+      print(f"|> {L}[{l}] | {M} | {R}[{r}]")
       print(f"{P} <=> {self.T[s:]}")
+
+      # direction, chars_matching = self.compare(P, s, l)
+      # L, R, l, r = self.update_pointers(direction, chars_matching, L, M, R, l, r)
 
       if l == r:
         print("eq")
         direction, chars_matching = self.compare(P, s, l)
-        if direction is Dir.FOUND:
-          return self.T[s:]
-        else:
-          L, R, l, r = self.update_pointers(direction, chars_matching, L, M, R, l, r)
-      
+        L, R, l, r = self.update_pointers(direction, chars_matching, L, M, R, l, r)
+
       elif l > r:
         print(f"≈≈> llcp[M] = {self.llcp[M]}")
-        
+
+        # THOUGHTS:
+        # - llcp[M] holds LCP(0, 5) but maybe it should be LCP(1,4) or LCP(1,5)
         if l < self.llcp[M]:
           print("lLeft")
           L = M
@@ -160,14 +163,9 @@ class Searcher():
           r = self.llcp[M]
         else:
           print("lNeq")
-          
           direction, chars_matching = self.compare(P, s, l)
-          if direction is Dir.FOUND:
-            print("==")
-            return self.T[s:]
-          else:
-            L, R, l, r = self.update_pointers(direction, chars_matching, L, M, R, l, r)
-      
+          L, R, l, r = self.update_pointers(direction, chars_matching, L, M, R, l, r)
+
       else:
         print(f"≈≈> rlcp[M] = {self.rlcp[M]}")
 
@@ -180,19 +178,14 @@ class Searcher():
           l = self.rlcp[M]
         else:
           print("rNeq")
-
           direction, chars_matching = self.compare(P, s, l)
-          if direction is Dir.FOUND:
-            print("==")
-            return self.T[s:]
-          else:
-            L, R, l, r = self.update_pointers(direction, chars_matching, L, M, R, l, r)
+          L, R, l, r = self.update_pointers(direction, chars_matching, L, M, R, l, r)
 
-      print("\n")
+      print()
 
-    return self.T[self.suffixes[L]:]
+    return self.T[self.suffixes[L]:-1]
 
-  
+
   def compare(self, P, s, l):
     i = 0
     j = s
@@ -201,17 +194,23 @@ class Searcher():
       i += 1
       j += 1
 
-    print(f"lenT: {len(self.T)} | lenP: {len(P)} | i: {i} | j: {j}")
+    print(f"lenP: {len(P)} | lenT: {len(self.T)} | i: {i} | j: {j}")
+    # pdb.set_trace()
 
-    # We matched every char in P to one in T
     if i == len(P):
-      return Dir.FOUND, i
-    elif P[i] > self.T[j]:
+      if self.T[j] == "$":
+        # Exact match. Goes right just so we can return current L.
+        return Dir.RIGHT, i
+      else:
+        # P is prefix of the word being compared to it, let's go to the left.
+        return Dir.LEFT, i
+
+    if P[i] > self.T[j]:
       return Dir.RIGHT, i
     else:
       return Dir.LEFT, i
 
-  
+
   def update_pointers(self, direction, chars_matching, L, M, R, l, r):
     if direction is Dir.RIGHT:
       print(">>")

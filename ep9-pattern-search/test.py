@@ -1,5 +1,6 @@
 from searcher import Searcher
 from pprint import pprint
+from termcolor import colored
 
 
 def dump(label, vector):
@@ -8,9 +9,12 @@ def dump(label, vector):
   pprint(vector)
 
 
-def search(s, w):
-  print("\n-------------------------------------- ")
-  print(f"Found {w}? {s.simple_search(w)}")
+def check(s, f, e):
+  if e == f:
+    print(colored(f"✅  [P={s}]  expected: {e} | found: {f}", 'green'))
+  else:
+    print(colored(f"🚩  [P={s}]  expected: {e} | found: {f}", 'red'))
+  print("\n--------------------------------------\n")
 
 
 def test_0():
@@ -46,14 +50,15 @@ def test_0():
   dump("rlcp", s.rlcp)
   # print("[0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 2, 0]")
 
-  search(s, "racadabra")      # racadabra
-  search(s, "racadabre")      # racadabra
-  search(s, "zabra")          # racadabra
-  search(s, "abracadabro")    # abracadabra
-  # search(s, "cenabra")        # cadabra
-  # search(s, "cadabra")        # cadabra
-  # search(s, "adobra")         # adabra
-  # search(s, "abra")           # abra
+  check("racadabra",    s.simple_search("racadabra"),     "racadabra")
+  check("racadabre",    s.simple_search("racadabre"),     "racadabra")
+  check("zabra",        s.simple_search("zabra"),         "racadabra")
+  check("abracadabro",  s.simple_search("abracadabro"),   "abracadabra")
+  # check("cenabra",      s.simple_search("cenabra"),       "cadabra")
+  # check("cadabra",      s.simple_search("cadabra"),       "cadabra")
+  # check("adobra",       s.simple_search("adobra"),        "adabra")
+  # check("adabra",       s.simple_search("adabra"),        "adabra")
+  # check("abra",         s.simple_search("abra"),          "abra")
 
 
 def test_1():
@@ -76,5 +81,31 @@ def test_1():
   # search(s, "CCTTTGCGAC")
 
 
+def test_4():
+  print("\n\n\n<*><*><*><*><*><*><*><*><*><*><*><*><*><*><*><*><*><*><*><*>")
+  print("TEST 4\n----------\n")
+  T = open("test_4.txt", "r").read()
+
+  print(f"{T} ••• [{len(T)}]")
+  print("\n-------------------------------------- ")
+
+  # ['0 – $',
+  #  '1 – a$',
+  #  '2 – abra$',
+  #  '3 – bra$',
+  #  '4 – cabra$',
+  #  '5 – ra$']
+
+  s = Searcher(T)
+  s.pre_process()
+
+  check("zad",    s.simple_search("zad"),     "ra")
+  check("abr",    s.simple_search("abr"),     "a")
+  check("bra",    s.simple_search("bra"),     "bra")
+  check("bro",    s.simple_search("bro"),     "bra")
+  check("cabra",  s.simple_search("cabra"),   "cabra")
+
+
 test_0()
 # test_1()
+# test_4()
