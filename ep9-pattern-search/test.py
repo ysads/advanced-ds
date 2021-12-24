@@ -1,28 +1,15 @@
-from searcher import Searcher
-from pprint import pprint
-from termcolor import colored
+"""
+Nome: Ygor Sad Machado
+NUSP: 8910368
 
-
-def dump(label, vector):
-  print("\n-------------------------------------- ")
-  print(f"{label} •• {len(vector)}")
-  pprint(vector)
-
-
-def check(s, f, e):
-  if e == f:
-    print(colored(f"✅  [P={s}]  expected: {e} | found: {f}", 'green'))
-  else:
-    print(colored(f"🚩  [P={s}]  expected: {e} | found: {f}", 'red'))
-  print("\n--------------------------------------\n")
-
+WARNING: This program requires python 3.x!
+"""
+from vs import VS
 
 def test_0():
-  print("\n\n\n<*><*><*><*><*><*><*><*><*><*><*><*><*><*><*><*><*><*><*><*>")
-  print("TEST 0\n----------\n")
   T = open("test_0.txt", "r").read()
 
-  print(f"{T} ••• [{len(T)}]")
+  print(f"TEST 0: {T}")
   print("\n-------------------------------------- ")
 
   # ['0 – $',
@@ -38,55 +25,44 @@ def test_0():
   # '10 – ra$',
   # '11 – racadabra$']
 
-  s = Searcher(T)
-  s.pre_process()
-  # dump("sv", s.suffixes)
-  dump("lcp", s.lcp)
-  # print("[0, 0, 1, 4, 1, 1, 0, 3, 0, 0, 0, 2]")
+  s = VS(T)
+  s.print(include_lrlcp=True)
 
-  dump("llcp", s.llcp)
-  # print("[0, 0, 0, 4, 1, 0, 0, 3, 0, 0, 0, 0]")
-
-  dump("rlcp", s.rlcp)
-  # print("[0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 2, 0]")
-
-  check("racadabra",    s.simple_search("racadabra"),     "racadabra")
-  check("racadabre",    s.simple_search("racadabre"),     "racadabra")
-  check("zabra",        s.simple_search("zabra"),         "racadabra")
-  check("abracadabro",  s.simple_search("abracadabro"),   "abracadabra")
-  # check("cenabra",      s.simple_search("cenabra"),       "cadabra")
-  # check("cadabra",      s.simple_search("cadabra"),       "cadabra")
-  # check("adobra",       s.simple_search("adobra"),        "adabra")
-  # check("adabra",       s.simple_search("adabra"),        "adabra")
-  # check("abra",         s.simple_search("abra"),          "abra")
+  print()
+  print(s.search("racadabra"))
+  print(s.search("racadabre"))
+  print(s.search("zabra"))
+  print(s.search("abracadabro"))
+  print(s.search("cenabra"))
+  print(s.search("cadabra"))
+  print(s.search("adobra"))
+  print(s.search("adabra"))
+  print(s.search("abra"))
 
 
 def test_1():
-  print("\n\n\n<*><*><*><*><*><*><*><*><*><*><*><*><*><*><*><*><*><*><*><*>")
-  print("TEST 1\n----------\n")
+  print("\n\n\n##############################################")
+
   T = open("test_1.txt", "r").read()
 
-  print(f"{T} ••• [{len(T)}]")
+  print(f"TEST 1: {T}")
   print("\n-------------------------------------- ")
 
-  s = Searcher(T)
-  s.pre_process()
-  # dump("sv", s.suffixes)
-  dump("lcp", s.lcp)
-  dump("llcp", s.llcp)
-  dump("rlcp", s.rlcp)
+  s = VS(T)
+  s.print(include_lrlcp=True)
 
-  # search(s, "ACCTG")
-  # search(s, "GCCTG")
-  # search(s, "CCTTTGCGAC")
+  print()
+  s.search("ACCTG")
+  s.search("GCCTG")
+  s.search("CCTTTGCGAC")
 
 
-def test_4():
-  print("\n\n\n<*><*><*><*><*><*><*><*><*><*><*><*><*><*><*><*><*><*><*><*>")
-  print("TEST 4\n----------\n")
-  T = open("test_4.txt", "r").read()
+def test_2():
+  print("\n\n\n##############################################")
 
-  print(f"{T} ••• [{len(T)}]")
+  T = open("test_2.txt", "r").read()
+
+  print(f"TEST 2: {T}")
   print("\n-------------------------------------- ")
 
   # ['0 – $',
@@ -96,16 +72,18 @@ def test_4():
   #  '4 – cabra$',
   #  '5 – ra$']
 
-  s = Searcher(T)
-  s.pre_process()
+  s = VS(T)
+  s.print()
 
-  check("zad",    s.simple_search("zad"),     "ra")
-  check("abr",    s.simple_search("abr"),     "a")
-  check("bra",    s.simple_search("bra"),     "bra")
-  check("bro",    s.simple_search("bro"),     "bra")
-  check("cabra",  s.simple_search("cabra"),   "cabra")
+  print()
+  print(s.search("zad"))
+  print(s.search("abr"))
+  print(s.search("bra"))
+  print(s.search("bro"))
+  print(s.search("cabra"))
+
 
 
 test_0()
-# test_1()
-# test_4()
+test_1()
+test_2()
