@@ -24,15 +24,6 @@ class Dir(Enum):
   RIGHT = "R"
 
 
-class CmpResult():
-  def __init__(self, hint=None, count=0):
-    self.hint = hint
-    self.count = count
-
-  def __str__(self):
-    return f"[{self.hint} | {self.count}]"
-
-
 class Searcher():
   def __init__(self, T):
     self.T = T + '$'
@@ -135,7 +126,7 @@ class Searcher():
 
     l = 0
     L = 0
-    R = len(self.T)
+    R = len(self.T)-1
 
     while L < R-1:
       M = floor((L+R) / 2)
@@ -188,29 +179,33 @@ class Searcher():
 
 
   def compare(self, P, s, l):
-    i = 0
-    j = s
+    i = l
+    j = s+l
 
     # Compare P with the other word, char by char, until they differ or P is over.
+    # dprint(f"…… {P[i]} <=> {self.T[j]}")
     while i < len(P) and j < len(self.T) and P[i] == self.T[j]:
       i += 1
       j += 1
+      # dprint(f"…… {P[i]} <=> {self.T[j]}")
 
-    dprint(f"lenP: {len(P)} | lenT: {len(self.T)} | i: {i} | j: {j}")
+    count = i - l
+
+    dprint(f"lenP: {len(P)} | lenT: {len(self.T)} | i: {i} | j: {j} | count: {count}")
     # pdb.set_trace()
 
     if i == len(P):
       if self.T[j] == "$":
         # Exact match. Goes right just so we can return current L.
-        return Dir.RIGHT, i
+        return Dir.RIGHT, count
       else:
         # P is prefix of the other word, can we find a tighter suffix?
-        return Dir.LEFT, i
+        return Dir.LEFT, count
 
     if P[i] > self.T[j]:
-      return Dir.RIGHT, i
+      return Dir.RIGHT, count
     else:
-      return Dir.LEFT, i
+      return Dir.LEFT, count
 
 
   def updated_pointers(self, direction, chars_matching, L, M, R, l, r):
