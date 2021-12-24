@@ -14,11 +14,6 @@ from pprint import pprint
 from enum import Enum
 from math import floor
 
-def dprint(*args):
-  if 1:
-    print(*args)
-
-
 class Dir(Enum):
   LEFT = "L"
   RIGHT = "R"
@@ -54,7 +49,6 @@ class Searcher():
     pairs.sort(key=lambda s: s[0])
     suffixes = list(map(lambda s: s[1], pairs))
 
-    dprint("sufixes")
     pprint([f"{i} – {s[0]}" for i, s in enumerate(pairs)])
 
     self.suffixes = suffixes
@@ -132,48 +126,29 @@ class Searcher():
       M = floor((L+R) / 2)
       s = self.suffixes[M]
 
-      dprint(f"|> {L}[{l}] | {M} | {R}[{r}]")
-      dprint(f"{P} <=> {self.T[s:]}")
-
-      # direction, chars_matching = self.compare(P, s, l)
-      # L, R, l, r = self.updated_pointers(direction, chars_matching, L, M, R, l, r)
-
       if l == r:
-        dprint("eq")
         direction, chars_matching = self.compare(P, s, l)
         L, R, l, r = self.updated_pointers(direction, chars_matching, L, M, R, l, r)
 
       elif l > r:
-        dprint(f"≈≈> llcp[M] = {self.llcp[M]}")
-
         if l < self.llcp[M]:
-          dprint("lLeft")
           L = M
         elif self.llcp[M] < l:
-          dprint("lRight")
           R = M
           r = self.llcp[M]
         else:
-          dprint("lNeq")
           direction, chars_matching = self.compare(P, s, l)
           L, R, l, r = self.updated_pointers(direction, chars_matching, L, M, R, l, r)
 
       else:
-        dprint(f"≈≈> rlcp[M] = {self.rlcp[M]}")
-
         if r < self.rlcp[M]:
-          dprint("rLeft")
           R = M
         elif self.rlcp[M] < r:
-          dprint("rRight")
           L = M
           l = self.rlcp[M]
         else:
-          dprint("rNeq")
           direction, chars_matching = self.compare(P, s, l)
           L, R, l, r = self.updated_pointers(direction, chars_matching, L, M, R, l, r)
-
-      dprint()
 
     return self.T[self.suffixes[L]:-1]
 
@@ -183,17 +158,11 @@ class Searcher():
     j = s+l
 
     # Compare P with the other word, char by char, until they differ or P is over.
-    # dprint(f"…… {P[i]} <=> {self.T[j]}")
     while i < len(P) and j < len(self.T) and P[i] == self.T[j]:
       i += 1
       j += 1
-      # dprint(f"…… {P[i]} <=> {self.T[j]}")
 
     count = i - l
-
-    dprint(f"lenP: {len(P)} | lenT: {len(self.T)} | i: {i} | j: {j} | count: {count}")
-    # pdb.set_trace()
-
     if i == len(P):
       if self.T[j] == "$":
         # Exact match. Goes right just so we can return current L.
@@ -214,8 +183,6 @@ class Searcher():
     the number of characters we matched during comparison.
     """
     if direction is Dir.RIGHT:
-      dprint(">>")
       return M, R, l+chars_matching, r
     else:
-      dprint("<<")
       return L, M, l, r+chars_matching
