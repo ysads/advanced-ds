@@ -7,7 +7,6 @@ WARNING: This program requires python 3.x!
 """
 import pdb
 from pprint import pprint
-from stack import Stack
 
 # =========================================
 # Debug stuff
@@ -45,17 +44,22 @@ class Stack():
   def __init__(self):
     self.items = []
 
+
   def __len__(self):
     return len(self.items)
+
 
   def push(self, item):
     self.items.append(item)
 
+
   def pop(self):
     return self.items.pop()
 
+
   def top(self):
     return self.items[-1]
+
 
   def print(self):
     for item in self.items:
@@ -74,19 +78,18 @@ class FatNode():
     self.value = value
     self.children = [None, None]
 
+
   def __str__(self):
     return f"[{self.value}] > "
-  
+
+
   def append_right(self, node):
     self.children[-1] = node
 
-  def print(self):
-    print(">")
-    for u in self.children:
-      print(f" {u} ") 
 
   def update_child(self, i, value):
     self.children[i] = FatNode(value=value)
+
 
   def join(self, node):
     """
@@ -95,6 +98,18 @@ class FatNode():
     algorithm that builds the suffix tree only appends things to the right.
     """
     self.children = self.children + node.children[1:]
+
+
+  def walk_inorder(self):
+    for i, u in enumerate(self.children):
+      if u != None:
+        u.walk_inorder()
+
+      # Because our fat nodes only have a single copy of their value,
+      # this simulates multiple visits to the same node without an
+      # additional print after last child is visited.
+      if i != len(self.children)-1:
+        print(self.value)
 
 
 class AS():
@@ -106,6 +121,7 @@ class AS():
     self.T = T + '$'
     self.suffixes = []
     self.lcp = []
+    self.suffix_tree_root = None
     self.pre_process()
 
   # =========================================
@@ -113,8 +129,8 @@ class AS():
   # =========================================
 
   def print(self):
-    # print("\n• Suffixes:")
-    # pprint(self.suffixes)
+    print("\n• Suffixes:")
+    pprint(self.suffixes)
 
     print("\n-------------------------------------- ")
     print("• LCP")
@@ -132,6 +148,7 @@ class AS():
     self.build_suffixes()
     self.build_lcp()
     self.build_suffix_tree()
+    self.fill_missing_nodes(self.suffix_tree_root, 0)
 
 
   def build_suffixes(self):
@@ -191,25 +208,44 @@ class AS():
       else:
         while top_node.value >= next_node.value:
           top_node = stack.pop()
+
+          # If another node with the same value is already in the stack,
+          # we make it fatter by joining it with the one we've been
+          # accumulating the popped nodes in.
           if top_node.value == next_node.value:
             top_node.join(next_node)
+            stack.push(top_node)
             break
           else:
-            prev_top_node = stack.pop()
+            prev_top_node = stack.top()
             prev_top_node.append_right(top_node)
             top_node = prev_top_node
-            stack.push(prev_top_node)
-        
-        stack.push(top_node)
-
       i += 1
 
-    dump_stack(stack)
-    
     # If at the end there are more than 2 trees inside the stack, this
-    # will join them all into a single tree
+    # will join them all into a single tree.
     while len(stack) > 1:
       u = stack.pop()
       stack.top().append_right(u)
 
+    print("\n\n\n-> after join")
     dump_stack(stack)
+
+    self.suffix_tree_root = stack.top()
+
+
+  def fill_missing_nodes(self, node, i):
+    """
+    Does an in-order walk on the suffix tree filling null nodes along the
+    way with the suffixes calculated before.
+    """
+    for j in range(len(node.children)):
+      if node.children[j] is None:
+        # When an empty space is found, we fill it with the next unused suffix.
+        node.update_child(j, self.suffixes[i])
+        i += 1
+      else:
+        # Updates local i since other suffixes may have been added to the tree.
+        i = self.fill_missing_nodes(node.children[j], i)
+
+    return i

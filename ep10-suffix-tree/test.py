@@ -28,6 +28,9 @@ def test_0():
   s = AS(T)
   s.print()
 
+  print("\n\n")
+  s.suffix_tree_root.walk_inorder()
+
   print()
 
 
