@@ -3,9 +3,7 @@ Nome: Ygor Sad Machado
 NUSP: 8910368
 
 WARNING: This program requires python 3.x!
-
 """
-import pdb
 from pprint import pprint
 
 # =========================================
@@ -21,11 +19,12 @@ def print_tree(prefix="", node=None, is_last=False):
     print("├──", end="")
 
   if node != None:
-    print(node.value)
+    print(node)
 
-    for i, c in enumerate(node.children):
-      is_last_child = i == len(node.children)-1
-      print_tree(prefix + ("    " if is_last else "│   "), c, is_last_child)
+    if not node.leaf:
+      for i, c in enumerate(node.children):
+        is_last_child = i == len(node.children)-1
+        print_tree(prefix + ("    " if is_last else "│   "), c, is_last_child)
   else:
     print("*")
 
@@ -85,12 +84,16 @@ class FatNode():
   def __init__(self, value=None, T="", leaf=False):
     self.value = value
     self.leaf = leaf
+    self.start = 0
+    self.end = 0
+    self.suffix_index = 0
     self.T = T
+    self.leaves = 0
     self.children = [None, None]
 
 
   def __str__(self):
-    return f"{self.value}: {self.T}"
+    return f"{self.value} • [{self.start}, {self.end}]"
 
 
   def append_left(self, node):
@@ -133,10 +136,12 @@ class AS():
   avaiable to the object:
 
   - T: the text we will make queries against, with a suffixed $ for convenience
+  - A: the alphabet used in T, with an additional character $
   - suffix_tree_root: a FatNode object with a children for each character in A
   """
-  def __init__(self, T):
+  def __init__(self, T, A):
     self.T = T + '$'
+    self.A = '$' + A
     self.suffixes = []
     self.lcp = []
     self.suffix_tree_root = None
@@ -166,7 +171,9 @@ class AS():
     self.build_suffixes()
     self.build_lcp()
     self.build_suffix_tree()
-    self.fill_missing_nodes(self.suffix_tree_root, 0)
+    self.fill_missing_nodes(node=self.suffix_tree_root, parent=None, i=0)
+
+    dump_trees([self.suffix_tree_root])
 
 
   def build_suffixes(self):
@@ -257,25 +264,41 @@ class AS():
       u = stack.pop()
       stack.top().append_right(u)
 
-    print("\n\n\n-> after join")
-    dump_trees(stack)
-
     self.suffix_tree_root = stack.top()
 
 
-  def fill_missing_nodes(self, node, i):
+  def fill_missing_nodes(self, node, parent, i):
     """
     Does an in-order walk on the suffix tree filling null nodes along the
     way with the suffixes calculated before.
     """
+    leaves = 0
+
     for j in range(len(node.children)):
       if node.children[j] is None:
+        suffix_index = self.suffixes[i]
+
         # When an empty space is found, we fill it with the next unused suffix.
-        new_node = FatNode(value=self.suffixes[i], T=self.T[self.suffixes[i]:])
-        node.add_leaf(j, new_node)
+        # Note we do |T|-1 because T has a trailling $.
+        leaf_node = FatNode(value=suffix_index, leaf=True)
+        leaf_node.end = len(self.T)-1
+        leaf_node.start = suffix_index + node.value
+
+        node.add_leaf(j, leaf_node)
+        leaves += 1
         i += 1
+
       else:
         # Updates local i since other suffixes may have been added to the tree.
-        i = self.fill_missing_nodes(node.children[j], i)
+        i = self.fill_missing_nodes(node.children[j], node, i)
+        leaves += node.children[j].leaves
+
+    # Root node doesn't have parent
+    if parent:
+      node.leaves = leaves
+      # First child is always $ so we need the first real children
+      node.end = node.children[1].start - 1
+      # +1 is needed since indices are 0-based
+      node.start = node.end - (node.value - parent.value) + 1
 
     return i
