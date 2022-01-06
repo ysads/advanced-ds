@@ -12,23 +12,27 @@ from pprint import pprint
 # Debug stuff
 # =========================================
 
-def print_in_levels(r, level=0):
-  """
-  Recursively print the BST in a tree-like structure but rotated
-  90º counterclockwise – ie, given a node, its left children are
-  printed to the bottom, while its right children are on top of it.
-  """
-  if r is None:
-    print(' ' * 8 * level + "-> *")
+def print_tree(prefix="", node=None, is_last=False):
+  print(prefix, end="")
+
+  if is_last:
+    print("└──", end="")
   else:
-    print(' ' * 8 * level + '->', f"{r.value} [{len(r.children)}]")
-    for c in r.children: 
-      print_in_levels(c, level + 1)
+    print("├──", end="")
+
+  if node != None:
+    print(node.value)
+
+    for i, c in enumerate(node.children):
+      is_last_child = i == len(node.children)-1
+      print_tree(prefix + ("    " if is_last else "│   "), c, is_last_child)
+  else:
+    print("*")
 
 
-def dump_stack(s):
-  for u in s.items:
-    print_in_levels(u)
+def dump_trees(s):
+  for u in s:
+    print_tree(prefix="", node=u, is_last=False)
     print("↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓")
 
 
@@ -47,6 +51,10 @@ class Stack():
 
   def __len__(self):
     return len(self.items)
+
+
+  def __getitem__(self, i):
+    return self.items[i]
 
 
   def push(self, item):
@@ -74,13 +82,15 @@ class FatNode():
   with many edges pointing to other nodes. They start with a two empty
   pointers and grow as you conjoin them with other nodes.
   """
-  def __init__(self, value=None):
+  def __init__(self, value=None, T="", leaf=False):
     self.value = value
+    self.leaf = leaf
+    self.T = T
     self.children = [None, None]
 
 
   def __str__(self):
-    return f"[{self.value}] > "
+    return f"{self.value}: {self.T}"
 
 
   def append_left(self, node):
@@ -89,10 +99,6 @@ class FatNode():
 
   def append_right(self, node):
     self.children[-1] = node
-
-
-  def update_child(self, i, value):
-    self.children[i] = FatNode(value=value)
 
 
   def add_leaf(self, i, node):
@@ -107,22 +113,27 @@ class FatNode():
     self.children = self.children + node.children[1:]
 
 
-  def walk_inorder(self):
+  def walk_inorder(self, skip_leaves=False):
     for i, u in enumerate(self.children):
       if u != None:
-        u.walk_inorder()
+        u.walk_inorder(skip_leaves)
 
       # Because our fat nodes only have a single copy of their value,
       # this simulates multiple visits to the same node without an
       # additional print after last child is visited.
       if i != len(self.children)-1:
-        print(self.value)
+        if self.leaf and not skip_leaves or not self.leaf:
+          print(self)
 
 
 class AS():
   """"
   The main object that builds the suffix and LCP array and uses that to
-  build the suffix tree.
+  build the suffix tree. Once initialized, the following attributes are
+  avaiable to the object:
+
+  - T: the text we will make queries against, with a suffixed $ for convenience
+  - suffix_tree_root: a FatNode object with a children for each character in A
   """
   def __init__(self, T):
     self.T = T + '$'
@@ -202,7 +213,15 @@ class AS():
 
 
   def build_suffix_tree(self):
+    """
+    Build the basic suffix tree, ie, without the suffix integers using a structure
+    akin to a cartesian tree, but in such a way that repeated values are conjoined
+    in a single, fatter node.
+    """
     stack = Stack()
+
+    # Starts at 1 because we stated that lcp[0] is not defined and the first lcp,
+    # between $ and anything is always 0.
     stack.push(FatNode(value=self.lcp[1]))
 
     i = 2
@@ -239,7 +258,7 @@ class AS():
       stack.top().append_right(u)
 
     print("\n\n\n-> after join")
-    dump_stack(stack)
+    dump_trees(stack)
 
     self.suffix_tree_root = stack.top()
 
@@ -252,7 +271,7 @@ class AS():
     for j in range(len(node.children)):
       if node.children[j] is None:
         # When an empty space is found, we fill it with the next unused suffix.
-        new_node = FatNode(value=self.suffixes[i])
+        new_node = FatNode(value=self.suffixes[i], T=self.T[self.suffixes[i]:])
         node.add_leaf(j, new_node)
         i += 1
       else:
