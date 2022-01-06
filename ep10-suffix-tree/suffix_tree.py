@@ -91,6 +91,10 @@ class FatNode():
     self.children[i] = FatNode(value=value)
 
 
+  def add_leaf(self, i, node):
+    self.children[i] = node
+
+
   def join(self, node):
     """
     Assumes both nodes have the same value and that the leftmost child
@@ -206,20 +210,20 @@ class AS():
       if top_node.value < next_node.value:
         stack.push(next_node)
       else:
-        while top_node.value >= next_node.value:
+        while top_node.value > next_node.value:
           top_node = stack.pop()
+          prev_top_node = stack.top()
+          prev_top_node.append_right(top_node)
+          top_node = prev_top_node
 
-          # If another node with the same value is already in the stack,
-          # we make it fatter by joining it with the one we've been
-          # accumulating the popped nodes in.
-          if top_node.value == next_node.value:
-            top_node.join(next_node)
-            stack.push(top_node)
-            break
-          else:
-            prev_top_node = stack.top()
-            prev_top_node.append_right(top_node)
-            top_node = prev_top_node
+        # If another node with the same value is already in the stack,
+        # we make it fatter by joining it with the one we've been
+        # accumulating the popped nodes in.
+        if top_node.value == next_node.value:
+          top_node.join(next_node)
+        else:
+          stack.push(next_node)
+
       i += 1
 
     # If at the end there are more than 2 trees inside the stack, this
@@ -242,7 +246,8 @@ class AS():
     for j in range(len(node.children)):
       if node.children[j] is None:
         # When an empty space is found, we fill it with the next unused suffix.
-        node.update_child(j, self.suffixes[i])
+        new_node = FatNode(value=self.suffixes[i])
+        node.add_leaf(j, new_node)
         i += 1
       else:
         # Updates local i since other suffixes may have been added to the tree.
