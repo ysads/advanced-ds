@@ -90,6 +90,7 @@ class FatNode():
     self.T = T
     self.leaves = 0
     self.children = [None, None]
+    self.child_dict = {}
 
 
   def __str__(self):
@@ -152,7 +153,10 @@ class AS():
   # =========================================
 
   def print(self):
-    print("\n• Suffixes:")
+    print(f"\n• Alphabet: {self.A}")
+
+    print("\n-------------------------------------- ")
+    print("• Suffixes:")
     pprint(self.suffixes)
 
     print("\n-------------------------------------- ")
@@ -172,6 +176,7 @@ class AS():
     self.build_lcp()
     self.build_suffix_tree()
     self.fill_missing_nodes(node=self.suffix_tree_root, parent=None, i=0)
+    self.rearrange_children(node=self.suffix_tree_root)
 
     dump_trees([self.suffix_tree_root])
 
@@ -302,3 +307,17 @@ class AS():
       node.start = node.end - (node.value - parent.value) + 1
 
     return i
+
+
+  def rearrange_children(self, node):
+    """
+    Organize the children list in nodes such that each child is located
+    in a position indexed by its initial char.
+    """
+    for child in node.children:
+      if child != None:
+        self.rearrange_children(child)
+
+        node.child_dict[self.T[child.start]] = child
+
+    # print(node.value, " • ", node.child_dict)
