@@ -83,6 +83,10 @@ class FatNode():
     return f"[{self.value}] > "
 
 
+  def append_left(self, node):
+    self.children[0] = node
+
+
   def append_right(self, node):
     self.children[-1] = node
 
@@ -98,8 +102,7 @@ class FatNode():
   def join(self, node):
     """
     Assumes both nodes have the same value and that the leftmost child
-    of the other node is always empty. This is possible because the
-    algorithm that builds the suffix tree only appends things to the right.
+    of the other node is always empty – since we only join fresh nodes.
     """
     self.children = self.children + node.children[1:]
 
@@ -210,18 +213,21 @@ class AS():
       if top_node.value < next_node.value:
         stack.push(next_node)
       else:
-        while top_node.value > next_node.value:
-          top_node = stack.pop()
-          prev_top_node = stack.top()
-          prev_top_node.append_right(top_node)
-          top_node = prev_top_node
+        last_pop_node = stack.pop()
 
-        # If another node with the same value is already in the stack,
-        # we make it fatter by joining it with the one we've been
-        # accumulating the popped nodes in.
-        if top_node.value == next_node.value:
-          top_node.join(next_node)
+        while len(stack) and stack.top().value >= next_node.value:
+          top_node = stack.top()
+          top_node.append_right(last_pop_node)
+          last_pop_node = stack.pop()
+
+        # If the last popped node matches the one we're trying to push, then
+        # we join them together. Otherwise we make it next node's left child
+        # and push the next node into the stack
+        if last_pop_node.value == next_node.value:
+          last_pop_node.join(next_node)
+          stack.push(last_pop_node)
         else:
+          next_node.append_left(last_pop_node)
           stack.push(next_node)
 
       i += 1

@@ -42,7 +42,26 @@ def test_1():
   print(f"TEST 1: {T}")
   print("\n-------------------------------------- ")
 
+  # ['0 – $',
+  # '1 – AAACCTTTGCGACC$',
+  # '2 – AACCTTTGCGACC$',
+  # '3 – ACC$',
+  # '4 – ACCTTTGCGACC$',
+  # '5 – C$',
+  # '6 – CC$',
+  # '7 – CCTTTGCGACC$',
+  # '8 – CGACC$',
+  # '9 – CTTTGCGACC$',
+  # '10 – GACC$',
+  # '11 – GCGACC$',
+  # '12 - TGCGACC',
+  # '13 - TTGCGACC',
+  # '14 - TTTGCGACC']
+
   s = AS(T)
+
+  print("\n\n")
+  s.suffix_tree_root.walk_inorder()
   s.print()
 
   print()
@@ -71,5 +90,5 @@ def test_2():
 
 
 test_0()
-# test_1()
+test_1()
 # test_2()
