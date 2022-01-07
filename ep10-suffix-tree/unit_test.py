@@ -9,7 +9,7 @@ def check(s, f, e):
     print(colored(f"✅  [P={s}]  expected: {e} | found: {f}", 'green'))
   else:
     print(colored(f"🚩  [P={s}]  expected: {e} | found: {f}", 'red'))
-  print("\n--------------------------------------\n")
+  print("--------------------------------------")
 
 
 def test_0():
@@ -96,10 +96,27 @@ def test_1():
   # '14 - TTTGCGACC']
 
   s = AS(T, "ACGT")
-  s.print()
 
-  print()
+  check("CC",         s.search("CC"),         True)
+  check("CCTTTGC",    s.search("CCTTTGC"),    True)
+  check("TTTGCGACC",  s.search("TTTGCGACC"),  True)
+  check("AGACT",      s.search("AGACT"),      False)
+  check("TTGCGACA",   s.search("TTGCGACA"),   False)
+
+  check("A",          s.num_occurrences("A"),         4)
+  check("C",          s.num_occurrences("C"),         5)
+  check("CC",         s.num_occurrences("CC"),        2)
+  check("TTTGCGACC",  s.num_occurrences("TTTGCGACC"), 1)
+  check("AGACT",      s.num_occurrences("AGACT"),     0)
+  check("TTGCGACA",   s.num_occurrences("TTGCGACA"),  0)
+
+  check("A",          s.occurrences("A"),           [0, 1, 11, 2])
+  check("C",          s.occurrences("C"),           [13, 12, 3, 9, 4])
+  check("CC",         s.occurrences("CC"),          [12, 3])
+  check("TTTGCGACC",  s.occurrences("TTTGCGACC"),   [5])
+  check("AGACT",      s.occurrences("AGACT"),       [])
+  check("TTGCGACA",   s.occurrences("TTGCGACA"),    [])
 
 
 test_0()
-# test_1()
+test_1()

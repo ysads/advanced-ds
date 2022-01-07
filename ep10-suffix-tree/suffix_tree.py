@@ -3,12 +3,24 @@ Nome: Ygor Sad Machado
 NUSP: 8910368
 
 WARNING: This program requires python 3.x!
+
+Implements a data structure based on suffix trees that, given a text T, allow multiple
+queries to be made against T *without* reprocessing it. This uses an OOP approach to
+make it easier to access T, the suffix tree, and the lcp and suffixes arrays.
+
+The idea is to create something akin to a cartesian tree, but supporting repeated values.
+To do that, we use a FatNode abstraction, that's able to conjoin nodes with same value.
+In this object we only save the node's value once, but keep a list of all N+1 edges leaving
+the N nodes that were conjoined.
+
+This ignores the cost to build both the suffix and lcp arrays (here, quadratic), since the
+focus here is to build the *suffix tree* in linear time.
 """
 from pprint import pprint
 
-# =========================================
-# Debug stuff
-# =========================================
+# ====================================================
+# Helpers. Can be used to print tree-like structures
+# =========================================-==========
 
 def print_tree(prefix="", node=None, is_last=False):
   print(prefix, end="")
@@ -32,7 +44,7 @@ def print_tree(prefix="", node=None, is_last=False):
 def dump_trees(s):
   for u in s:
     print_tree(prefix="", node=u, is_last=False)
-    print("↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓")
+    print("•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-•-")
 
 
 # =========================================
@@ -68,12 +80,6 @@ class Stack():
     return self.items[-1]
 
 
-  def print(self):
-    for item in self.items:
-      print(item)
-      print("↓")
-
-
 class FatNode():
   """"
   Implements something similar to the fat nodes used in B-Trees,
@@ -81,13 +87,11 @@ class FatNode():
   with many edges pointing to other nodes. They start with a two empty
   pointers and grow as you conjoin them with other nodes.
   """
-  def __init__(self, value=None, T="", leaf=False):
+  def __init__(self, value=None, leaf=False):
     self.value = value
     self.leaf = leaf
     self.start = 0
     self.end = 0
-    self.suffix_index = 0
-    self.T = T
     self.leaves = 1
     self.children = [None, None]
     self.child_dict = {}
@@ -139,9 +143,9 @@ class AS():
   build the suffix tree. Once initialized, the following attributes are
   avaiable to the object:
 
-  - T: the text we will make queries against, with a suffixed $ for convenience
-  - A: the alphabet used in T, with an additional character $
-  - suffix_tree_root: a FatNode object with a children for each character in A
+  - T: the text we will make queries against, with a suffixed $ for convenience.
+  - A: the alphabet used in T, with an additional character $.
+  - suffix_tree_root: a FatNode object with a children for each character in A.
   """
   def __init__(self, T, A):
     self.T = T + '$'
@@ -155,7 +159,7 @@ class AS():
   # Interface functions
   # =========================================
 
-  def print(self, include_extra=True):
+  def print(self, include_extra=False):
     print("\n-------------------------------------- ")
     print("• Walk inorder")
     self.suffix_tree_root.walk_inorder()
@@ -172,50 +176,14 @@ class AS():
       print("• LCP")
       pprint(self.lcp)
 
-    print("\n-------------------------------------- ")
-    print("• Walk inorder")
-    self.suffix_tree_root.walk_inorder()
-
 
   def search(self, P):
-    print(f"~~~ LOOKUP: {P} [{len(P)}] ~~~\n")
     node = self.search_node(parent=self.suffix_tree_root, P=P, i=0, j=0)
-    print(f"~ Found: {node}")
 
     if node:
       return True
     else:
       return False
-
-
-  def search_node(self, parent, P, i, j):
-    """"
-    Given a parent node, tries to find which one of its children allows to keep
-    searching path to keep searching for a word P.
-    """
-    oi = i
-    oj = j
-
-    if P[i] not in parent.child_dict:
-      return None
-
-    node = parent.child_dict[P[i]]
-    j = node.start
-
-    print(f"@ {parent} > {node}")
-
-    while i < len(P) and j < len(self.T) and j <= node.end and P[i] == self.T[j]:
-      print(f">>> i: {i} | j: {j} • {P[i]} <=> {self.T[j]}")
-      i += 1
-      j += 1
-
-    print(f"Match until: {P[oi:i]} • i: {i} | j: {j}\n")
-    if i == len(P):
-      return node
-    elif j <= node.end:
-      return None
-    else:
-      return self.search_node(node, P, i, j)
 
 
   def num_occurrences(self, P):
@@ -402,3 +370,30 @@ class AS():
 
         node.child_dict[self.T[child.start]] = child
 
+
+  def search_node(self, parent, P, i, j):
+    """
+    Given a parent node, tries to find which one of its children allows to keep
+    searching for a word P. If none is found, or P has a mismatch with any char
+    within the node's interval, None is returned instead.
+    """
+    if P[i] not in parent.child_dict:
+      return None
+
+    node = parent.child_dict[P[i]]
+    j = node.start
+
+    # Keep comparing P and T until this node's interval ends or a mismatch is found.
+    while i < len(P) and j < len(self.T) and j <= node.end and P[i] == self.T[j]:
+      i += 1
+      j += 1
+
+    # This means P matches something in T, either entire or partially.
+    if i == len(P):
+      return node
+    elif j <= node.end:
+      # Nodes' intervals are inclusive, which means we only enter here when the
+      # comparison ended before the interval upper boundary due to a mismatch.
+      return None
+    else:
+      return self.search_node(node, P, i, j)
