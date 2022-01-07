@@ -15,10 +15,12 @@ def dprint(*args):
 # =========================================
 
 class VS():
-  def __init__(self, T):
+  def __init__(self, T, A):
     self.T = T + '$'
+    self.T_mapping = [self.T[i] for i in range(len(self.T))]
     self.suffixes = []
     self.lcp = []
+    self.alphabet = self.build_alphabet(A)
     self.pre_process()
 
   # =========================================
@@ -26,6 +28,12 @@ class VS():
   # =========================================
 
   def print(self):
+    print("\n-------------------------------------- ")
+    print(self.T_mapping)
+    print("\n-------------------------------------- ")
+    pprint(self.alphabet)
+
+
     print("\n-------------------------------------- ")
     print("• Suffixes:")
     pprint(self.suffixes)
@@ -39,11 +47,35 @@ class VS():
   # =========================================
 
   def pre_process(self):
-    self.build_suffixes()
-    self.build_lcp()
+    self.build_suffixes(self.T)
+    # self.build_lcp()
 
 
-  def build_suffixes(self):
+  def build_alphabet(self, A):
+    alphabet = {'$': 0}
+
+    for i in range(len(A)):
+      alphabet[A[i]] = i + 1
+
+    return alphabet
+
+
+  def build_TS(self):
+    """
+    Maps every char in T to its associated order inside the alphabet.
+    """
+    for i in range(len(self.T)):
+      self.T_mapping[i] = self.alphabet[self.T[i]]
+
+
+  def build_suffixes(self, T):
+    if len(T) <= 4:
+      self.suffixes = self.build_sa_naively()
+    else:
+      self.build_TS()
+
+
+  def build_sa_naively(self):
     """
     Naïvely builds the suffix vector by slicing the text T and leveraging
     the lexicographic sorting to python built-in functions.
@@ -58,9 +90,7 @@ class VS():
     pairs.sort(key=lambda s: s[0])
     suffixes = list(map(lambda s: s[1], pairs))
 
-    pprint(list(map(lambda u: [u[1], u[0]], pairs)))
-
-    self.suffixes = suffixes
+    return suffixes
 
 
   def build_lcp(self):
@@ -69,7 +99,7 @@ class VS():
     suffixes using h as counter of how many of their characters match. 
     """
     n = len(self.T)
-    rank = [0 for i in range(n)]
+    rank = [0 for _ in range(n)]
     lcp = [0 for _ in range(n)]
 
     # rank acts like the inverse of the suffixes array, that is, given a
