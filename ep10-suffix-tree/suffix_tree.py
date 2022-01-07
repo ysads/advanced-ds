@@ -94,7 +94,7 @@ class FatNode():
 
 
   def __str__(self):
-    return f"{self.value} • [{self.start}, {self.end}]"
+    return f"{self.value} • [{self.start}, {self.end}] ({self.leaves})"
 
 
   def append_left(self, node):
@@ -165,8 +165,8 @@ class AS():
 
 
   def search(self, P):
-    print(f"~~~ LOOKUP: {P} ~~~\n")
-    node = self.search_node(parent=self.suffix_tree_root, P=P + '$', i=0, j=0)
+    print(f"~~~ LOOKUP: {P} [{len(P)}] ~~~\n")
+    node = self.search_node(parent=self.suffix_tree_root, P=P, i=0, j=0)
     print(f"~ Found: {node}")
 
     if node:
@@ -197,10 +197,10 @@ class AS():
       j += 1
 
     print(f"Match until: {P[oi:i]} • i: {i} | j: {j}\n")
-    if j <= node.end:
-      return None
-    elif i == len(P):
+    if i == len(P):
       return node
+    elif j <= node.end:
+      return None
     else:
       return self.search_node(node, P, i, j)
 
