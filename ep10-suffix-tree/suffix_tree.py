@@ -163,6 +163,48 @@ class AS():
     print("• LCP")
     pprint(self.lcp)
 
+
+  def search(self, P):
+    print(f"~~~ LOOKUP: {P} ~~~\n")
+    node = self.search_node(parent=self.suffix_tree_root, P=P + '$', i=0, j=0)
+    print(f"~ Found: {node}")
+
+    if node:
+      return True
+    else:
+      return False
+
+
+  def search_node(self, parent, P, i, j):
+    """"
+    Given a parent node, tries to find which one of its children allows to keep
+    searching path to keep searching for a word P.
+    """
+    oi = i
+    oj = j
+
+    if P[i] not in parent.child_dict:
+      return None
+
+    node = parent.child_dict[P[i]]
+    j = node.start
+
+    print(f"@ {parent} > {node}")
+
+    while i < len(P) and j < len(self.T) and j <= node.end and P[i] == self.T[j]:
+      print(f">>> i: {i} | j: {j} • {P[i]} <=> {self.T[j]}")
+      i += 1
+      j += 1
+
+    print(f"Match until: {P[oi:i]} • i: {i} | j: {j}\n")
+    if j <= node.end:
+      return None
+    elif i == len(P):
+      return node
+    else:
+      return self.search_node(node, P, i, j)
+
+
   # =========================================
   # Utilitary functions
   # =========================================

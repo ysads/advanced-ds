@@ -1,10 +1,16 @@
-"""
-Nome: Ygor Sad Machado
-NUSP: 8910368
-
-WARNING: This program requires python 3.x!
-"""
 from suffix_tree import AS
+from pprint import pprint
+from termcolor import colored
+
+
+def check(s, f, e):
+  print()
+  if e == f:
+    print(colored(f"✅  [P={s}]  expected: {e} | found: {f}", 'green'))
+  else:
+    print(colored(f"🚩  [P={s}]  expected: {e} | found: {f}", 'red'))
+  print("\n--------------------------------------\n")
+
 
 def test_0():
   T = open("test_0.txt", "r").read()
@@ -26,18 +32,18 @@ def test_0():
   # '11 – racadabra$']
 
   s = AS(T, "abcdr")
-  s.print()
+  # s.print()
 
   print()
-  print(s.search("bra"))          # True
-  print(s.search("bracadabra"))   # True
-  print(s.search("abracadabra"))  # True
-  print(s.search("adabra"))       # True
-  print(s.search("abro"))         # False
-  print(s.search("cada"))         # False
-  print(s.search("cadabro"))      # False
-  print(s.search("rocadabra"))    # False
-  print(s.search("xocadabra"))    # False
+  check("bra",          s.search("bra"),          True)
+  check("bracadabra",   s.search("bracadabra"),   True)
+  check("abracadabra",  s.search("abracadabra"),  True)
+  check("adabra",       s.search("adabra"),       True)
+  check("abro",         s.search("abro"),         False)
+  check("cada",         s.search("cada"),         False)
+  check("cadabro",      s.search("cadabro"),      False)
+  check("rocadabra",    s.search("rocadabra"),    False)
+  check("xocadabra",    s.search("xocadabra"),    False)
 
   print("\n\n")
 
