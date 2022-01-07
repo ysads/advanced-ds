@@ -94,7 +94,7 @@ class FatNode():
 
 
   def __str__(self):
-    return f"{self.value} • [{self.start}, {self.end}] ({self.leaves})"
+    return f"{self.value} • [{self.start}, {self.end}]"
 
 
   def append_left(self, node):
@@ -117,17 +117,20 @@ class FatNode():
     self.children = self.children + node.children[1:]
 
 
-  def walk_inorder(self, skip_leaves=False):
+  def walk_inorder(self, fn=lambda u: print(u)):
+    """
+    Simulate an inorder walk adapted to the fat nodes. It receives an optional
+    fn arg, which defines what to do with each visited node – by default is printing.
+    """
     for i, u in enumerate(self.children):
       if u != None:
-        u.walk_inorder(skip_leaves)
+        u.walk_inorder(fn)
 
       # Because our fat nodes only have a single copy of their value,
       # this simulates multiple visits to the same node without an
-      # additional print after last child is visited.
+      # additional visit after last child is visited.
       if i != len(self.children)-1:
-        if self.leaf and not skip_leaves or not self.leaf:
-          print(self)
+        fn(self)
 
 
 class AS():
@@ -152,16 +155,26 @@ class AS():
   # Interface functions
   # =========================================
 
-  def print(self):
-    print(f"\n• Alphabet: {self.A}")
+  def print(self, include_extra=True):
+    print("\n-------------------------------------- ")
+    print("• Walk inorder")
+    self.suffix_tree_root.walk_inorder()
+
+    if include_extra:
+      print("\n-------------------------------------- ")
+      print(f"• Alphabet: {self.A}")
+
+      print("\n-------------------------------------- ")
+      print("• Suffixes:")
+      pprint(self.suffixes)
+
+      print("\n-------------------------------------- ")
+      print("• LCP")
+      pprint(self.lcp)
 
     print("\n-------------------------------------- ")
-    print("• Suffixes:")
-    pprint(self.suffixes)
-
-    print("\n-------------------------------------- ")
-    print("• LCP")
-    pprint(self.lcp)
+    print("• Walk inorder")
+    self.suffix_tree_root.walk_inorder()
 
 
   def search(self, P):
@@ -212,6 +225,25 @@ class AS():
       return node.leaves
     else:
       return 0
+
+
+  def occurrences(self, P):
+    node = self.search_node(parent=self.suffix_tree_root, P=P, i=0, j=0)
+
+    if node:
+      suffixes = []
+
+      # An anonymous function that will be executed whenever a node is visited
+      # during the walk. Note that we only want the values of leaves, because
+      # only their values are actual suffixes of T.
+      acc_suffix_of_leaves = lambda u: suffixes.append(u.value) if u.leaf else None
+
+      # Walks the subtree in order accumulating the suffix of every leaf.
+      node.walk_inorder(acc_suffix_of_leaves)
+
+      return suffixes
+    else:
+      return []
 
   # =========================================
   # Utilitary functions

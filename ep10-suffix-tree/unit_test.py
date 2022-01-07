@@ -32,7 +32,7 @@ def test_0():
   # '11 – racadabra$']
 
   s = AS(T, "abcdr")
-  # s.print()
+  s.print(include_extra=True)
 
   print()
   check("a",            s.search("a"),            True)
@@ -56,6 +56,17 @@ def test_0():
   check("cadabro",      s.num_occurrences("cadabro"),       0)
   check("rocadabra",    s.num_occurrences("rocadabra"),     0)
   check("xocadabra",    s.num_occurrences("xocadabra"),     0)
+
+  check("a",            s.occurrences("a"),             [10, 7, 0, 3, 5])
+  check("bra",          s.occurrences("bra"),           [8, 1])
+  check("bracadabra",   s.occurrences("bracadabra"),    [1])
+  check("abracadabra",  s.occurrences("abracadabra"),   [0])
+  check("adabra",       s.occurrences("adabra"),        [5])
+  check("cada",         s.occurrences("cada"),          [4])
+  check("abro",         s.occurrences("abro"),          [])
+  check("cadabro",      s.occurrences("cadabro"),       [])
+  check("rocadabra",    s.occurrences("rocadabra"),     [])
+  check("xocadabra",    s.occurrences("xocadabra"),     [])
 
   print("\n\n")
 
