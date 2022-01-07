@@ -13,10 +13,9 @@ def check(s, f, e):
 
 
 def test_0():
-  T = open("test_0.txt", "r").read()
+  T = "abracadabra"
 
   print(f"TEST 0: {T}")
-  print("\n-------------------------------------- ")
 
   # ['0 – $',
   # '1 – a$',
@@ -42,10 +41,9 @@ def test_0():
 def test_1():
   print("\n\n\n##############################################")
 
-  T = open("test_1.txt", "r").read()
+  T = "AAACCTTTGCGACC"
 
   print(f"TEST 1: {T}")
-  print("\n-------------------------------------- ")
 
   # ['0 – $',
   # '1 – AAACCTTTGCGACC$',
@@ -70,5 +68,51 @@ def test_1():
   check("Suff", s.suffixes,   [14, 0, 1, 11, 2, 13, 12, 3, 9, 4, 10, 8, 7, 6, 5])
 
 
+def test_2():
+  print("\n\n\n##############################################")
+
+  T = "AAACCATTGCGACC"
+
+  print(f"TEST 2: {T}")
+
+  s = VS(T)
+  s.print()
+
+  #  14 – '$'
+  #  0  – 'AAACCATTGCGACC$'
+  #  1  – 'AACCATTGCGACC$'
+  #  11 – 'ACC$'
+  #  2  – 'ACCATTGCGACC$'
+  #  5  – 'ATTGCGACC$'
+  #  13 – 'C$'
+  #  4  – 'CATTGCGACC$'
+  #  12 – 'CC$'
+  #  3  – 'CCATTGCGACC$'
+  #  9  – 'CGACC$'
+  #  10 – 'GACC$'
+  #  8  – 'GCGACC$'
+  #  7  – 'TGCGACC$'
+  #  6  – 'TTGCGACC$'
+
+  check("LCP",  s.lcp,        [0, 0, 2, 1, 3, 1, 0, 1, 1, 2, 1, 0, 1, 0, 1])
+  check("Suff", s.suffixes,   [14, 0, 1, 11, 2, 5, 13, 4, 12, 3, 9, 10, 8, 7, 6])
+
+
+def test_3():
+  print("\n\n\n##############################################")
+
+  T = "AAT"
+
+  print(f"TEST 3: {T}")
+
+  s = VS(T)
+  s.print()
+
+  check("LCP",  s.lcp,      [0, 0, 1, 0])
+  check("Suff", s.suffixes, [3, 0, 1, 2])
+
+
 test_0()
 test_1()
+test_2()
+test_3()

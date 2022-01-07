@@ -7,10 +7,9 @@ WARNING: This program requires python 3.x!
 from vs import VS
 
 def test_0():
-  T = open("test_0.txt", "r").read()
+  T = "abracadabra"
 
   print(f"TEST 0: {T}")
-  print("\n-------------------------------------- ")
 
   # ['0 – $',
   # '1 – a$',
@@ -28,19 +27,18 @@ def test_0():
   s = VS(T)
   s.print()
 
-  # LCP       => [0, 0, 1, 4, 1, 1, 0, 3, 0, 0, 0, 2]
   # Suffixes  => [11, 10, 7, 0, 3, 5, 8, 1, 4, 6, 9, 2]
+  # LCP       => [0, 0, 1, 4, 1, 1, 0, 3, 0, 0, 0, 2]
 
   print()
 
 
 def test_1():
-  print("\n\n\n##############################################")
+  print("\n##############################################")
 
-  T = open("test_1.txt", "r").read()
+  T = "AAACCTTTGCGACC"
 
   print(f"TEST 1: {T}")
-  print("\n-------------------------------------- ")
 
   # ['0 – $',
   # '1 – AAACCTTTGCGACC$',
@@ -61,8 +59,8 @@ def test_1():
   s = VS(T)
   s.print()
 
-  # LCP       => [0, 0, 2, 1, 3, 0, 1, 2, 1, 1, 0, 1, 0, 1, 2]
   # Suffixes  => [14, 0, 1, 11, 2, 13, 12, 3, 9, 4, 10, 8, 7, 6, 5]
+  # LCP       => [0, 0, 2, 1, 3, 0, 1, 2, 1, 1, 0, 1, 0, 1, 2]
 
 
 test_0()

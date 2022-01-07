@@ -3,12 +3,19 @@ Nome: Ygor Sad Machado
 NUSP: 8910368
 
 WARNING: This program requires python 3.x!
+
+Implements a class that calculates LCP in linear time given
+a suffix array previously calculated – in this case, using
+a naïve approach.
+
+Note that this class solely calculates the suffixes and LCP
+array but *does not* provide methods to query T! This is done
+to declutter code and to emphasize the LCP calculation. Also,
+the requirements didn't mention anything about queries, probably
+because this has been better explored in previous assignments.
 """
 from pprint import pprint
 
-def dprint(*args):
-  if 1:
-    print(*args)
 
 # =========================================
 # Data structures
@@ -57,8 +64,6 @@ class VS():
 
     pairs.sort(key=lambda s: s[0])
     suffixes = list(map(lambda s: s[1], pairs))
-
-    pprint(list(map(lambda u: [u[1], u[0]], pairs)))
 
     self.suffixes = suffixes
 
