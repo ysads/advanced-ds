@@ -219,8 +219,8 @@ class AS():
 
   def pre_process(self):
     """
-    Parses T and generate all helper arrays, making the object ready to
-    answer queries. extended_lcp calculates llcp and rlcp.
+    Parses T and generate all helper arrays and tree, making the object
+    ready to be queried.
     """
     self.build_suffixes()
     self.build_lcp()
