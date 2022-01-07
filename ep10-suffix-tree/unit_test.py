@@ -46,6 +46,17 @@ def test_0():
   check("rocadabra",    s.search("rocadabra"),    False)
   check("xocadabra",    s.search("xocadabra"),    False)
 
+  check("a",            s.num_occurrences("a"),             5)
+  check("bra",          s.num_occurrences("bra"),           2)
+  check("bracadabra",   s.num_occurrences("bracadabra"),    1)
+  check("abracadabra",  s.num_occurrences("abracadabra"),   1)
+  check("adabra",       s.num_occurrences("adabra"),        1)
+  check("cada",         s.num_occurrences("cada"),          1)
+  check("abro",         s.num_occurrences("abro"),          0)
+  check("cadabro",      s.num_occurrences("cadabro"),       0)
+  check("rocadabra",    s.num_occurrences("rocadabra"),     0)
+  check("xocadabra",    s.num_occurrences("xocadabra"),     0)
+
   print("\n\n")
 
 

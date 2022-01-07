@@ -88,7 +88,7 @@ class FatNode():
     self.end = 0
     self.suffix_index = 0
     self.T = T
-    self.leaves = 0
+    self.leaves = 1
     self.children = [None, None]
     self.child_dict = {}
 
@@ -204,6 +204,14 @@ class AS():
     else:
       return self.search_node(node, P, i, j)
 
+
+  def num_occurrences(self, P):
+    node = self.search_node(parent=self.suffix_tree_root, P=P, i=0, j=0)
+
+    if node:
+      return node.leaves
+    else:
+      return 0
 
   # =========================================
   # Utilitary functions
@@ -362,4 +370,3 @@ class AS():
 
         node.child_dict[self.T[child.start]] = child
 
-    # print(node.value, " • ", node.child_dict)
